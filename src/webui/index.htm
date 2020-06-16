@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>HB-RF-ETH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap-vue.min.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <script src="jquery.min.js"></script>
+    <script src="vue.min.js"></script>
+    <script src="bootstrap-vue.min.js"></script>
+    <script src="validators.min.js"></script>
+    <script src="vuelidate.min.js"></script>
+    <style>
+        #app {
+            max-width: 600px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div id="app" class="container">
+        <b-navbar type="dark" variant="primary" class="mb-3 mt-3 rounded">
+            <b-navbar-brand tag="h1" class="font-weight-bold">HB-RF-ETH</b-navbar-brand>
+        </b-navbar>
+
+        <b-card header="Please log in" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="!login.isLoggedIn" class="mb-3">
+            <b-form @submit.stop.prevent>
+                <b-form-group label="Password" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.login.password.$model" :state="validateState('login', 'password')"></b-form-input>
+                </b-form-group>
+                <b-alert variant="danger" :show="login.error!=null ? 10 : null" dismissible fade @dismissed="login.error=null">
+                    {{ login.error }}
+                </b-alert>
+                <b-form-group label-cols-sm="9">
+                    <b-button variant="primary" block @click="loginClick"
+                        :disabled="login.password==null||login.password==''" trim required>Login</b-button>
+                </b-form-group>
+            </b-form>
+        </b-card>
+
+        <b-card header="Settings" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="login.isLoggedIn" class="mb-3">
+            <b-form @submit.stop.prevent>
+                <b-form-group label="Change Password" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.settings.adminPassword.$model" :state="validateState('settings', 'adminPassword')"></b-form-input>
+                </b-form-group>
+                <b-form-group label="Repeat Password" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.settings.adminPasswordRepeat.$model" :state="validateState('settings', 'adminPasswordRepeat')"></b-form-input>
+                </b-form-group>
+                <hr>
+                <b-form-group label="Hostname" label-cols-sm="4">
+                    <b-form-input type="text" v-model="$v.settings.hostname.$model" trim :state="validateState('settings', 'hostname')"></b-form-input>
+                </b-form-group>
+                <b-form-group label="DHCP" label-cols-sm="4">
+                    <b-form-radio-group buttons v-model="settings.useDHCP" required>
+                        <b-form-radio :value="true">Enabled</b-form-radio>
+                        <b-form-radio :value="false">Disabled</b-form-radio>
+                    </b-form-radio-group>
+                </b-form-group>
+                <b-form-group label="IP address" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.localIP.$model" trim :state="validateState('settings', 'localIP')">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="Netmask" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.netmask.$model" trim :state="validateState('settings', 'netmask')">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="Gateway" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.gateway.$model" trim :state="validateState('settings', 'gateway')">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="DNS1" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.dns1.$model" trim :state="validateState('settings', 'dns1')"></b-form-input>
+                </b-form-group>
+                <b-form-group label="DNS2" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.dns2.$model" trim :state="validateState('settings', 'dns2')"></b-form-input>
+                </b-form-group>
+                <hr>
+                <b-form-group label="Time Source" label-cols-sm="4">
+                    <b-form-radio-group buttons v-model="settings.enableDcf" required>
+                        <b-form-radio :value="false">NTP</b-form-radio>
+                        <b-form-radio :value="true">DCF</b-form-radio>
+                    </b-form-radio-group>
+                </b-form-group>
+                <b-form-group label="NTP Server" label-cols-sm="4" v-if="!settings.enableDcf">
+                    <b-form-input type="text" v-model="$v.settings.ntpServer.$model" trim :state="validateState('settings', 'ntpServer')">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="DCF Offset" label-cols-sm="4" v-if="settings.enableDcf">
+                    <b-input-group append="msec">
+                        <b-form-input type="number" v-model.number="$v.settings.dcfOffset.$model" min="0" :state="validateState('settings', 'dcfOffset')">
+                        </b-form-input>
+                    </b-input-group>
+                </b-form-group>
+
+                <b-alert variant="success" :show="settings.success!=null" dismissible fade @dismissed="settings.success=null">
+                    {{ settings.success }}
+                </b-alert>
+                <b-alert variant="danger" :show="settings.error!=null" dismissible fade @dismissed="settings.error=null">
+                    {{ settings.error }}
+                </b-alert>
+
+                <b-form-group label-cols-sm="9">
+                    <b-button variant="primary" block @click="saveSettingsClick" :disabled="$v.settings.$anyError" >Save</b-button>
+                </b-form-group>
+            </b-form>
+        </b-card>
+
+        <b-card header="Firmware" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="login.isLoggedIn" class="mb-3">
+            <b-form @submit.stop.prevent>
+                <b-form-group label="Installed version" label-cols-sm="4">
+                    <b-form-input type="text" v-model="sysInfo.currentVersion" disabled></b-form-input>
+                </b-form-group>
+                <b-alert variant="warning"
+                    :show="sysInfo.currentVersion < sysInfo.latestVersion && sysInfo.latestVersion != 'n/a'">An
+                    update to version {{ sysInfo.latestVersion }} is available at <a href="https://github.com/alexreinert/HB-RF-ETH/releases" class="alert-link" target="_new">Github</a>.
+                </b-alert>
+                <b-form-group label="Upload" label-cols-sm="4">
+                    <b-form-file v-model="firmware.file" accept=".bin"></b-form-file>
+                </b-form-group>
+                <b-progress :value="firmware.progress" max="100" class="mb-3" v-if="firmware.progress>0" animated>
+                </b-progress>
+                <b-alert variant="info" :show="firmware.success!=null" dismissible fade @dismissed="firmware.success=null">
+                    {{ firmware.success }}
+                </b-alert>
+                <b-alert variant="danger" :show="firmware.error!=null" dismissible fade @dismissed="firmware.error=null">
+                    {{ firmware.error }}
+                </b-alert>
+                <b-form-group label-cols-sm="9">
+                    <b-button variant="primary" block :disabled="firmware.file==null||firmware.progress>0"
+                        @click="firmwareUpdateClick">Update</b-button>
+                </b-form-group>
+            </b-form>
+        </b-card>
+
+        <p class="text-right"><small><a href="about.htm">About</a></small></p>
+    </div>
+    <script src="webui.js"></script>
+</body>
+
+</html>
