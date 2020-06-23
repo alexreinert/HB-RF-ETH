@@ -21,6 +21,13 @@
 #include <stdio.h>
 #include <lwip/ip4_addr.h>
 
+typedef enum
+{
+    TIMESOURCE_NTP = 0,
+    TIMESOURCE_DCF = 1,
+    TIMESOURCE_GPS = 2
+} timesource_t;
+
 class Settings
 {
 private:
@@ -34,8 +41,11 @@ private:
   ip4_addr_t _dns1;
   ip4_addr_t _dns2;
 
-  bool _enableDcf;
+  int _timesource;
+
   int _dcfOffset;
+
+  int _gpsBaudrate;
 
   char _ntpServer[64] = {0};
 
@@ -58,11 +68,14 @@ public:
 
   void setNetworkSettings(char *hostname, bool useDHCP, ip4_addr_t localIP, ip4_addr_t netmask, ip4_addr_t gateway, ip4_addr_t dns1, ip4_addr_t dns2);
 
-  bool getEnableDcf();
-  void setEnableDcf(bool enableDcf);
+  timesource_t getTimesource();
+  void setTimesource(timesource_t timesource);
 
   int getDcfOffset();
   void setDcfOffset(int offset);
+
+  int getGpsBaudrate();
+  void setGpsBaudrate(int baudrate);
 
   char *getNtpServer();
   void setNtpServer(char *ntpServer);

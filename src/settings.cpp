@@ -16,7 +16,7 @@
  *  limitations under the License.
  */
 
-#include "Settings.h"
+#include "settings.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include <string.h>
@@ -92,8 +92,11 @@ void Settings::load()
   GET_IP_ADDR(handle, "dns1", _dns1, IPADDR_ANY);
   GET_IP_ADDR(handle, "dns2", _dns2, IPADDR_ANY);
 
-  GET_BOOL(handle, "enableDcf", _enableDcf, false);
+  GET_INT(handle, "timesource", _timesource, TIMESOURCE_NTP);
+  
   GET_INT(handle, "dcfOffset", _dcfOffset, 40000);
+
+  GET_INT(handle, "gpsBaudrate", _gpsBaudrate, 9600);
 
   size_t ntpServerLength = sizeof(_ntpServer);
   if (nvs_get_str(handle, "ntpServer", _ntpServer, &ntpServerLength) != ESP_OK)
@@ -120,8 +123,11 @@ void Settings::save()
   SET_IP_ADDR(handle, "dns1", _dns1);
   SET_IP_ADDR(handle, "dns2", _dns2);
 
-  SET_BOOL(handle, "enableDcf", _enableDcf);
+  SET_INT(handle, "timesource", _timesource);
+
   SET_INT(handle, "dcfOffset", _dcfOffset);
+
+  SET_INT(handle, "gpsBaudrate", _gpsBaudrate);
 
   SET_STR(handle, "ntpServer", _ntpServer);
 
@@ -206,14 +212,24 @@ void Settings::setDcfOffset(int dcfOffset)
   _dcfOffset = dcfOffset;
 }
 
-bool Settings::getEnableDcf()
+int Settings::getGpsBaudrate()
 {
-  return _enableDcf;
+  return _gpsBaudrate;
 }
 
-void Settings::setEnableDcf(bool enableDcf)
+void Settings::setGpsBaudrate(int gpsBaudrate)
 {
-  _enableDcf = enableDcf;
+  _gpsBaudrate = gpsBaudrate;
+}
+
+timesource_t Settings::getTimesource()
+{
+  return (timesource_t)_timesource;
+}
+
+void Settings::setTimesource(timesource_t timesource)
+{
+  _timesource = timesource;
 }
 
 char *Settings::getNtpServer()

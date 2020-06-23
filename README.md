@@ -16,6 +16,5 @@ Roadmap (ungeordnet und ohne Gewähr für Umsetzung)
 * LED Fading
 * SNMP
 * CheckMK
-* GPS Modul Unterstützung
 * LGW Mode
 * AskSin Analyzer Light

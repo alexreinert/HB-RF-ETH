@@ -30,6 +30,7 @@
 #include "systemclock.h"
 #include "dcf.h"
 #include "ntpclient.h"
+#include "gps.h"
 #include "ethernet.h"
 #include "pushbuttonhandler.h"
 #include "radiomoduleconnector.h"
@@ -92,13 +93,19 @@ void app_main()
 
     DCF dcf(&settings, &clk);
     NtpClient ntpClient(&settings, &clk);
-    if (settings.getEnableDcf())
+    GPS gps(&settings, &clk);
+
+    switch (settings.getTimesource())
     {
-        dcf.start();
-    }
-    else
-    {
+    case TIMESOURCE_NTP:
         ntpClient.start();
+        break;
+    case TIMESOURCE_GPS:
+        gps.start();
+        break;
+    case TIMESOURCE_DCF:
+        dcf.start();
+        break;
     }
 
     MDns mdns;

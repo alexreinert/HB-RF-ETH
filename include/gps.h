@@ -1,5 +1,5 @@
 /* 
- *  linereader.h is part of the HB-RF-ETH firmware - https://github.com/alexreinert/HB-RF-ETH
+ *  gps.h is part of the HB-RF-ETH firmware - https://github.com/alexreinert/HB-RF-ETH
  *  
  *  Copyright 2020 Alexander Reinert
  *  
@@ -16,22 +16,30 @@
  *  limitations under the License.
  */
 
-#pragma once
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "driver/uart.h"
+#include "systemclock.h"
+#include "settings.h"
+#include "linereader.h"
 
-#include <stdint.h>
-#include <functional>
-
-class LineReader
+class GPS
 {
 private:
-    unsigned char _buffer[1024];
-    std::function<void(unsigned char *buffer, uint16_t len)> _processor;
-    uint16_t _buffer_pos;
+    Settings *_settings;
+    SystemClock *_clk;
+    TaskHandle_t _tHandle = NULL;
+    QueueHandle_t _uart_queue;
+    LineReader *_lineReader;
+    uint64_t _nextSync = 0;
 
 public:
-    LineReader(std::function<void(unsigned char *buffer, uint16_t len)> processor);
+    GPS(Settings *settings, SystemClock *clk);
 
-    void Append(unsigned char chr);
-    void Append(unsigned char *buffer, uint16_t len);
-    void Flush();
+    void start(void);
+    void stop(void);
+
+    void _gpsSerialQueueHandler();
+    void _handleLine(unsigned char *buffer, uint16_t len);
 };

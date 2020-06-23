@@ -19,11 +19,11 @@
 #include "linereader.h"
 #include <stdint.h>
 
-LineReader::LineReader(void (*processor)(char *buffer, uint8_t len)) : _processor(processor), _buffer_pos(0)
+LineReader::LineReader(std::function<void(unsigned char *buffer, uint16_t len)> processor) : _processor(processor), _buffer_pos(0)
 {
 }
 
-void LineReader::AppendChar(char chr)
+void LineReader::Append(unsigned char chr)
 {
     switch (chr)
     {
@@ -42,7 +42,16 @@ void LineReader::AppendChar(char chr)
     }
 }
 
-void LineReader::Reset()
+void LineReader::Append(unsigned char *buffer, uint16_t len)
+{
+    int i;
+    for (i = 0; i < len; i++)
+    {
+        Append(buffer[i]);
+    }
+}
+
+void LineReader::Flush()
 {
     _buffer_pos = 0;
 }

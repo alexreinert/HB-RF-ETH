@@ -28,8 +28,9 @@ var app = new Vue({
             gateway: "",
             dns1: "",
             dns2: "",
-            enableDcf: true,
+            timesource: 0,
             dcfOffset: 0,
+            gpsBaudrate: 9600,
             ntpServer: "",
 
             success: null,
@@ -83,13 +84,24 @@ var app = new Vue({
             dns2: {
                 ipAddress
             },
-            dcfOffset: {
-                required: requiredIf('enableDcf'),
-                numeric
-            },
             ntpServer: {
-                required: requiredUnless('enableDcf'),
+                required: requiredIf('isNtpActived'),
+            },
+            dcfOffset: {
+                required: requiredIf('isDcfActived'),
+                numeric
             }
+        }
+    },
+    computed: {
+        isNtpActivated: function () {
+            return this.settings.timesource == 0;
+        },
+        isDcfActivated: function () {
+            return this.settings.timesource == 1;
+        },
+        isGpsActivated: function () {
+            return this.settings.timesource == 2;
         }
     },
     methods: {

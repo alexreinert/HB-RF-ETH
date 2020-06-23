@@ -75,7 +75,7 @@ esp_err_t validate_auth(httpd_req_t *req)
     if (httpd_req_get_hdr_value_str(req, "Authorization", auth, sizeof(auth)) != ESP_OK)
         return ESP_FAIL;
 
-    if (strstr(auth, "Basic ") != auth)
+    if (strncmp(auth, "Basic ", 6) != 0)
         return ESP_FAIL;
 
     char decoded[64] = {0};
@@ -85,10 +85,10 @@ esp_err_t validate_auth(httpd_req_t *req)
 
     decoded[decodedLength] = 0;
 
-    if (strstr(decoded, "admin:") != decoded)
+    if (strncmp(decoded, "admin:", 6) != 0)
         return ESP_FAIL;
 
-    if (strcmp(decoded + 6, _settings->getAdminPassword()))
+    if (strcmp(decoded + 6, _settings->getAdminPassword()) != 0)
         return ESP_FAIL;
 
     return ESP_OK;
@@ -114,8 +114,11 @@ void add_settings(cJSON *root)
         cJSON_AddStringToObject(settings, "dns2", ip2str(_settings->getDns2(), dnsInfo.ip.u_addr.ip4));
     }
 
-    cJSON_AddBoolToObject(settings, "enableDcf", _settings->getEnableDcf() ? 1 : 0);
+    cJSON_AddNumberToObject(settings, "timesource", _settings->getTimesource());
+
     cJSON_AddNumberToObject(settings, "dcfOffset", _settings->getDcfOffset());
+
+    cJSON_AddNumberToObject(settings, "gpsBaudrate", _settings->getGpsBaudrate());
 
     cJSON_AddStringToObject(settings, "ntpServer", _settings->getNtpServer());
 }
@@ -200,8 +203,11 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
         ip4_addr_t dns1 = cJSON_GetIPAddrValue(cJSON_GetObjectItem(root, "dns1"));
         ip4_addr_t dns2 = cJSON_GetIPAddrValue(cJSON_GetObjectItem(root, "dns2"));
 
-        bool enableDcf = cJSON_GetBoolValue(cJSON_GetObjectItem(root, "enableDcf"));
+        timesource_t timesource = (timesource_t)cJSON_GetObjectItem(root, "timesource")->valueint;
+
         int dcfOffset = cJSON_GetObjectItem(root, "dcfOffset")->valueint;
+
+        int gpsBaudrate = cJSON_GetObjectItem(root, "gpsBaudrate")->valueint;
 
         char *ntpServer = cJSON_GetStringValue(cJSON_GetObjectItem(root, "ntpServer"));
 
@@ -209,8 +215,9 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
             _settings->setAdminPassword(adminPassword);
 
         _settings->setNetworkSettings(hostname, useDHCP, localIP, netmask, gateway, dns1, dns2);
-        _settings->setEnableDcf(enableDcf);
+        _settings->setTimesource(timesource);
         _settings->setDcfOffset(dcfOffset);
+        _settings->setGpsBaudrate(gpsBaudrate);
         _settings->setNtpServer(ntpServer);
 
         _settings->save();
