@@ -1,0 +1,33 @@
+{
+  "build": {
+    "core": "esp32",
+    "f_cpu": "240000000L",
+    "f_flash": "40000000L",
+    "flash_mode": "qio",
+    "mcu": "esp32",
+    "variant": "hb-rf-eth",
+    "hwids": [ 
+      [ "0x1A86", "0x7523" ] ]
+  },
+  "connectivity": [
+    "wifi",
+    "bluetooth",
+    "ethernet"
+  ],
+  "debug": {
+    "openocd_board": "esp-wroom-32.cfg"
+  },
+  "frameworks": [
+    "espidf"
+  ],
+  "name": "HB-RF-ETH",
+  "upload": {
+    "flash_size": "4MB",
+    "maximum_ram_size": 327680,
+    "maximum_size": 4194304,
+    "require_upload_port": true,
+    "speed": 921600
+  },
+  "url": "https://github.com/alexreinert/PCB",
+  "vendor": "Alexander Reinert"
+}

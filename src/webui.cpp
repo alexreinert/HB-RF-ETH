@@ -35,6 +35,7 @@ static const char *TAG = "WebUI";
     esp_err_t _resource##_handler_func(httpd_req_t *req)               \
     {                                                                  \
         httpd_resp_set_type(req, _contentType);                        \
+        httpd_resp_set_hdr(req, "Content-Encoding", "gzip");           \
         httpd_resp_send(req, _resource, _resource##_length);           \
         return ESP_OK;                                                 \
     };                                                                 \
@@ -44,17 +45,17 @@ static const char *TAG = "WebUI";
         .handler = _resource##_handler_func,                           \
         .user_ctx = NULL};
 
-EMBED_HANDLER("/", index_htm, "text/html")
-EMBED_HANDLER("/about.htm", about_htm, "text/html")
-EMBED_HANDLER("/webui.js", webui_js, "application/javascript")
-EMBED_HANDLER("/jquery.min.js", jquery_min_js, "application/javascript")
-EMBED_HANDLER("/vue.min.js", vue_min_js, "application/javascript")
-EMBED_HANDLER("/bootstrap.min.css", bootstrap_min_css, "text/css")
-EMBED_HANDLER("/bootstrap-vue.min.css", bootstrap_vue_min_css, "text/css")
-EMBED_HANDLER("/bootstrap-vue.min.js", bootstrap_vue_min_js, "application/javascript")
-EMBED_HANDLER("/vuelidate.min.js", vuelidate_min_js, "application/javascript")
-EMBED_HANDLER("/validators.min.js", validators_min_js, "application/javascript")
-EMBED_HANDLER("/favicon.ico", favicon_ico, "image/x-icon")
+EMBED_HANDLER("/", index_htm_gzip, "text/html")
+EMBED_HANDLER("/about.htm", about_htm_gzip, "text/html")
+EMBED_HANDLER("/webui.js", webui_js_gzip, "application/javascript")
+EMBED_HANDLER("/jquery.min.js", jquery_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/vue.min.js", vue_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/bootstrap.min.css", bootstrap_min_css_gzip, "text/css")
+EMBED_HANDLER("/bootstrap-vue.min.css", bootstrap_vue_min_css_gzip, "text/css")
+EMBED_HANDLER("/bootstrap-vue.min.js", bootstrap_vue_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/vuelidate.min.js", vuelidate_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/validators.min.js", validators_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/favicon.ico", favicon_ico_gzip, "image/x-icon")
 
 static Settings *_settings;
 static LED *_statusLED;
@@ -342,17 +343,17 @@ void WebUI::start()
 
     if (httpd_start(&_httpd_handle, &config) == ESP_OK)
     {
-        httpd_register_uri_handler(_httpd_handle, &index_htm_handler);
-        httpd_register_uri_handler(_httpd_handle, &about_htm_handler);
-        httpd_register_uri_handler(_httpd_handle, &webui_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &jquery_min_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &vue_min_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_min_css_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_css_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &vuelidate_min_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &validators_min_js_handler);
-        httpd_register_uri_handler(_httpd_handle, &favicon_ico_handler);
+        httpd_register_uri_handler(_httpd_handle, &index_htm_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &about_htm_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &webui_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &jquery_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &vue_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &bootstrap_min_css_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_css_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &vuelidate_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &validators_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &favicon_ico_gzip_handler);
 
         httpd_register_uri_handler(_httpd_handle, &post_ota_update_handler);
         httpd_register_uri_handler(_httpd_handle, &post_settings_json_handler);
