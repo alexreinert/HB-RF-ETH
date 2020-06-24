@@ -14,6 +14,7 @@
     <script src="bootstrap-vue.min.js"></script>
     <script src="validators.min.js"></script>
     <script src="vuelidate.min.js"></script>
+    <script src="vue-i18n.min.js"></script>
     <style>
         #app {
             max-width: 600px;
@@ -27,76 +28,90 @@
             <b-navbar-brand tag="h1" class="font-weight-bold">HB-RF-ETH</b-navbar-brand>
         </b-navbar>
 
-        <b-card header="Please log in" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="!login.isLoggedIn" class="mb-3">
+        <b-card :header="$t('login.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
+            v-if="!login.isLoggedIn" class="mb-3">
             <b-form @submit.stop.prevent>
-                <b-form-group label="Password" label-cols-sm="4">
-                    <b-form-input type="password" v-model="$v.login.password.$model" :state="validateState('login', 'password')"></b-form-input>
+                <b-form-group :label="$t('login.password')" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.login.password.$model"
+                        :state="validateState('login', 'password')"></b-form-input>
                 </b-form-group>
-                <b-alert variant="danger" :show="login.error!=null ? 10 : null" dismissible fade @dismissed="login.error=null">
+                <b-alert variant="danger" :show="login.error!=null ? 10 : null" dismissible fade
+                    @dismissed="login.error=null">
                     {{ login.error }}
                 </b-alert>
                 <b-form-group label-cols-sm="9">
                     <b-button variant="primary" block @click="loginClick"
-                        :disabled="login.password==null||login.password==''" trim required>Login</b-button>
+                        :disabled="login.password==null||login.password==''">{{ $t('login.login') }}</b-button>
                 </b-form-group>
             </b-form>
         </b-card>
 
-        <b-card header="Settings" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="login.isLoggedIn" class="mb-3">
+        <b-card :header="$t('settings.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
+            v-if="login.isLoggedIn" class="mb-3">
             <b-form @submit.stop.prevent>
-                <b-form-group label="Change Password" label-cols-sm="4">
-                    <b-form-input type="password" v-model="$v.settings.adminPassword.$model" :state="validateState('settings', 'adminPassword')"></b-form-input>
+                <b-form-group :label="$t('settings.changePassword')" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.settings.adminPassword.$model"
+                        :state="validateState('settings', 'adminPassword')"></b-form-input>
                 </b-form-group>
-                <b-form-group label="Repeat Password" label-cols-sm="4">
-                    <b-form-input type="password" v-model="$v.settings.adminPasswordRepeat.$model" :state="validateState('settings', 'adminPasswordRepeat')"></b-form-input>
+                <b-form-group :label="$t('settings.repeatPassword')" label-cols-sm="4">
+                    <b-form-input type="password" v-model="$v.settings.adminPasswordRepeat.$model"
+                        :state="validateState('settings', 'adminPasswordRepeat')"></b-form-input>
                 </b-form-group>
                 <hr>
-                <b-form-group label="Hostname" label-cols-sm="4">
-                    <b-form-input type="text" v-model="$v.settings.hostname.$model" trim :state="validateState('settings', 'hostname')"></b-form-input>
+                <b-form-group :label="$t('settings.hostname')" label-cols-sm="4">
+                    <b-form-input type="text" v-model="$v.settings.hostname.$model" trim
+                        :state="validateState('settings', 'hostname')"></b-form-input>
                 </b-form-group>
-                <b-form-group label="DHCP" label-cols-sm="4">
+                <b-form-group :label="$t('settings.dhcp')" label-cols-sm="4">
                     <b-form-radio-group buttons v-model="settings.useDHCP" required>
-                        <b-form-radio :value="true">Enabled</b-form-radio>
-                        <b-form-radio :value="false">Disabled</b-form-radio>
+                        <b-form-radio :value="true">{{ $t('settings.enabled') }}</b-form-radio>
+                        <b-form-radio :value="false">{{ $t('settings.disabled') }}</b-form-radio>
                     </b-form-radio-group>
                 </b-form-group>
-                <b-form-group label="IP address" label-cols-sm="4" v-if="!settings.useDHCP">
-                    <b-form-input type="text" v-model="$v.settings.localIP.$model" trim :state="validateState('settings', 'localIP')">
+                <b-form-group :label="$t('settings.ipAddress')" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.localIP.$model" trim
+                        :state="validateState('settings', 'localIP')">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group label="Netmask" label-cols-sm="4" v-if="!settings.useDHCP">
-                    <b-form-input type="text" v-model="$v.settings.netmask.$model" trim :state="validateState('settings', 'netmask')">
+                <b-form-group :label="$t('settings.netmask')" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.netmask.$model" trim
+                        :state="validateState('settings', 'netmask')">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group label="Gateway" label-cols-sm="4" v-if="!settings.useDHCP">
-                    <b-form-input type="text" v-model="$v.settings.gateway.$model" trim :state="validateState('settings', 'gateway')">
+                <b-form-group :label="$t('settings.gateway')" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.gateway.$model" trim
+                        :state="validateState('settings', 'gateway')">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group label="DNS1" label-cols-sm="4" v-if="!settings.useDHCP">
-                    <b-form-input type="text" v-model="$v.settings.dns1.$model" trim :state="validateState('settings', 'dns1')"></b-form-input>
+                <b-form-group :label="$t('settings.dns1')" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.dns1.$model" trim
+                        :state="validateState('settings', 'dns1')"></b-form-input>
                 </b-form-group>
-                <b-form-group label="DNS2" label-cols-sm="4" v-if="!settings.useDHCP">
-                    <b-form-input type="text" v-model="$v.settings.dns2.$model" trim :state="validateState('settings', 'dns2')"></b-form-input>
+                <b-form-group :label="$t('settings.dns2')" label-cols-sm="4" v-if="!settings.useDHCP">
+                    <b-form-input type="text" v-model="$v.settings.dns2.$model" trim
+                        :state="validateState('settings', 'dns2')"></b-form-input>
                 </b-form-group>
                 <hr>
-                <b-form-group label="Time Source" label-cols-sm="4">
+                <b-form-group :label="$t('settings.timesource')" label-cols-sm="4">
                     <b-form-radio-group buttons v-model="settings.timesource" required>
-                        <b-form-radio :value="0">NTP</b-form-radio>
-                        <b-form-radio :value="1">DCF</b-form-radio>
-                        <b-form-radio :value="2">GPS</b-form-radio>
+                        <b-form-radio :value="0">{{ $t('settings.ntp') }}</b-form-radio>
+                        <b-form-radio :value="1">{{ $t('settings.dcf') }}</b-form-radio>
+                        <b-form-radio :value="2">{{ $t('settings.gps') }}</b-form-radio>
                     </b-form-radio-group>
                 </b-form-group>
-                <b-form-group label="NTP Server" label-cols-sm="4" v-if="isNtpActivated">
-                    <b-form-input type="text" v-model="$v.settings.ntpServer.$model" trim :state="validateState('settings', 'ntpServer')">
+                <b-form-group :label="$t('settings.ntpServer')" label-cols-sm="4" v-if="isNtpActivated">
+                    <b-form-input type="text" v-model="$v.settings.ntpServer.$model" trim
+                        :state="validateState('settings', 'ntpServer')">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group label="DCF Offset" label-cols-sm="4" v-if="isDcfActivated">
+                <b-form-group :label="$t('settings.dcfOffset')" label-cols-sm="4" v-if="isDcfActivated">
                     <b-input-group append="&mu;s">
-                        <b-form-input type="number" v-model.number="$v.settings.dcfOffset.$model" min="0" :state="validateState('settings', 'dcfOffset')">
+                        <b-form-input type="number" v-model.number="$v.settings.dcfOffset.$model" min="0"
+                            :state="validateState('settings', 'dcfOffset')">
                         </b-form-input>
                     </b-input-group>
                 </b-form-group>
-                <b-form-group label="GPS Baudrate" label-cols-sm="4" v-if="isGpsActivated">
+                <b-form-group :label="$t('settings.gpsBaudrate')" label-cols-sm="4" v-if="isGpsActivated">
                     <b-form-select v-model.number="settings.gpsBaudrate" class="mb-3">
                         <b-form-select-option :value="4800">4800</b-form-select-option>
                         <b-form-select-option :value="9600">9600</b-form-select-option>
@@ -107,47 +122,58 @@
                     </b-form-select>
                 </b-form-group>
 
-                <b-alert variant="success" :show="settings.success!=null" dismissible fade @dismissed="settings.success=null">
+                <b-alert variant="success" :show="settings.success!=null" dismissible fade
+                    @dismissed="settings.success=null">
                     {{ settings.success }}
                 </b-alert>
-                <b-alert variant="danger" :show="settings.error!=null" dismissible fade @dismissed="settings.error=null">
+                <b-alert variant="danger" :show="settings.error!=null" dismissible fade
+                    @dismissed="settings.error=null">
                     {{ settings.error }}
                 </b-alert>
 
                 <b-form-group label-cols-sm="9">
-                    <b-button variant="primary" block @click="saveSettingsClick" :disabled="$v.settings.$anyError" >Save</b-button>
+                    <b-button variant="primary" block @click="saveSettingsClick" :disabled="$v.settings.$anyError">
+                        {{ $t('settings.save') }}</b-button>
                 </b-form-group>
             </b-form>
         </b-card>
 
-        <b-card header="Firmware" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" v-if="login.isLoggedIn" class="mb-3">
+        <b-card :header="$t('firmware.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
+            v-if="login.isLoggedIn" class="mb-3">
             <b-form @submit.stop.prevent>
-                <b-form-group label="Installed version" label-cols-sm="4">
+                <b-form-group :label="$t('firmware.installedVersion')" label-cols-sm="4">
                     <b-form-input type="text" v-model="sysInfo.currentVersion" disabled></b-form-input>
                 </b-form-group>
                 <b-alert variant="warning"
-                    :show="sysInfo.currentVersion < sysInfo.latestVersion && sysInfo.latestVersion != 'n/a'">An
-                    update to version {{ sysInfo.latestVersion }} is available at <a href="https://github.com/alexreinert/HB-RF-ETH/releases" class="alert-link" target="_new">Github</a>.
+                    :show="sysInfo.currentVersion < sysInfo.latestVersion && sysInfo.latestVersion != 'n/a'">
+                    <i18n path="firmware.updateAvailable">
+                        <span place="latestVersion">{{ sysInfo.latestVersion }}</span>
+                        <a place="github" href="https://github.com/alexreinert/HB-RF-ETH/releases" class="alert-link"
+                            target="_new">Github</a>
+                    </i18n>
                 </b-alert>
-                <b-form-group label="Upload" label-cols-sm="4">
-                    <b-form-file v-model="firmware.file" accept=".bin"></b-form-file>
+                <b-form-group :label="$t('firmware.updateFile')" label-cols-sm="4">
+                    <b-form-file v-model="firmware.file" accept=".bin" :placeholder="$t('firmware.noFileChosen')"
+                        :browse-text="$t('firmware.browse')"></b-form-file>
                 </b-form-group>
                 <b-progress :value="firmware.progress" max="100" class="mb-3" v-if="firmware.progress>0" animated>
                 </b-progress>
-                <b-alert variant="success" :show="firmware.success!=null" dismissible fade @dismissed="firmware.success=null">
+                <b-alert variant="success" :show="firmware.success!=null" dismissible fade
+                    @dismissed="firmware.success=null">
                     {{ firmware.success }}
                 </b-alert>
-                <b-alert variant="danger" :show="firmware.error!=null" dismissible fade @dismissed="firmware.error=null">
+                <b-alert variant="danger" :show="firmware.error!=null" dismissible fade
+                    @dismissed="firmware.error=null">
                     {{ firmware.error }}
                 </b-alert>
                 <b-form-group label-cols-sm="9">
                     <b-button variant="primary" block :disabled="firmware.file==null||firmware.progress>0"
-                        @click="firmwareUpdateClick">Update</b-button>
+                        @click="firmwareUpdateClick">{{ $t('firmware.upload') }}</b-button>
                 </b-form-group>
             </b-form>
         </b-card>
 
-        <p class="text-right"><small><a href="about.htm">About</a></small></p>
+        <p class="text-right"><small><a href="about.htm">{{ $t('about.link') }}</a></small></p>
     </div>
     <script src="webui.js"></script>
 </body>

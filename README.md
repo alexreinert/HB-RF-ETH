@@ -62,7 +62,6 @@ Firmware Updates sind fertig kompiliert und Releases zu finden und können per W
 ### Roadmap
 Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als zufällig anzusehen und es ist nicht garantiert, dass alle Punkte auch umgesetzt werden.
 
-* I18N
 * WebUI: Aktuellen Status anzeigen
 * WebUI: Besseres parsing multipart/form-data bei OTA Update
 * Transportverschlüsselung raw-uart

@@ -14,6 +14,7 @@
     <script src="bootstrap-vue.min.js"></script>
     <script src="validators.min.js"></script>
     <script src="vuelidate.min.js"></script>
+    <script src="vue-i18n.min.js"></script>
     <style>
         #app {
             max-width: 600px;
@@ -27,26 +28,27 @@
             <b-navbar-brand tag="h1" class="font-weight-bold">HB-RF-ETH</b-navbar-brand>
         </b-navbar>
 
-        <b-card header="About" header-tag="h6" header-bg-variant="secondary" header-text-variant="white" class="mb-3">
+        <b-card :header="$t('about.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
+            class="mb-3">
             <p>Copyright (c) 2020, Alexander Reinert</p>
-            <p>The <a href="https://github.com/alexreinert/HB-RF-ETH" target="_new">HB-RF-ETH firmware</a> is released under the <a
-                    href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE" target="_new">Apache License 2.0</a>
-            </p>
-            <p>The <a href="https://github.com/alexreinert/PCB/HB-RF-ETH" target="_new">HB-RF-ETH hardware</a> is released under the
-                <a href="https://github.com/alexreinert/PCB/blob/master/LICENSE.md" target="_new">CC BY-NC-SA 4.0 License</a>
-            </p>
+            <i18n path="about.license" tag="p">
+                <a place="link" href="https://github.com/alexreinert/HB-RF-ETH"
+                    target="_new">{{ $t('about.firmware') }}</a>
+                <a place="license" href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
+                    target="_new">{{ $t('about.apache2') }}</a>
+            </i18n>
+            <i18n path="about.license" tag="p">
+                <a place="link" href="https://github.com/alexreinert/HB-RF-ETH"
+                    target="_new">{{ $t('about.hardware') }}</a>
+                <a place="license" href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
+                    target="_new">{{ $t('about.ccbyncsa4') }}</a>
+            </i18n>
         </b-card>
 
-        <b-card header="Third party software" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
-            class="mb-3">
-            <p>
-                This software contains free third party software products used under various license conditions. A
-                list of free software to be used and the license conditions under which the particular free software
-                will be passed on, can be found enclosed below.
-            </p>
-            <p>
-                The software is provided “as is” WITHOUT ANY WARRANTY.
-            </p>
+        <b-card :header="$t('thirdParty.title')" header-tag="h6" header-bg-variant="secondary"
+            header-text-variant="white" class="mb-3">
+            <p>{{ $t('thirdParty.containsThirdPartySoftware')}}</p>
+            <p>{{ $t('thirdParty.providedAsIs')}}</p>
             <b-list-group>
                 <b-list-group-item v-for="(lib, index) in libs"
                     @click="$root.$emit('bv::toggle::collapse', 'collapse-lib-' + index)">
@@ -63,12 +65,49 @@
     <script type="text/javascript">
         Vue.use(BootstrapVue);
         Vue.use(window.vuelidate.default);
+        Vue.use(VueI18n);
 
         var app = new Vue({
             el: '#app',
+            i18n: {
+                locale: navigator.language,
+                fallbackLocale: "en",
+                messages: {
+                    de: {
+                        about: {
+                            title: "Über",
+                            license: "Die {link} ist veröffentlicht unter der {license}.",
+                            firmware: "HB-RF-ETH Software",
+                            hardware: "HB-RF-ETH Platine",
+                            apache2: "Apache 2.0 Lizenz",
+                            ccbyncsa4: "CC BY-NC-SA 4.0 Lizenz"
+                        },
+                        thirdParty: {
+                            title: "Software Dritter",
+                            firmware: "HB-RF-ETH firmware",
+                            hardware: "HB-RF-ETH pcb",
+                            containsThirdPartySoftware: "Diese Software enthält freie Software Dritter, die unter verschiedenen Lizenzbedingungen weitergegeben wird. Eine Auflistung der freien Software, die in dieser Software zum Einsatz kommt, sowie die Lizenzbedingungen unter denen diese weitergegeben wird, finden Sie anbei.",
+                            providedAsIs: "Die Veröffentlichung der freien Software erfolgt, „wie es ist“, OHNE IRGENDEINE GARANTIE."
+                        }
+                    },
+                    en: {
+                        about: {
+                            title: "About",
+                            license: "The {link} is released under the {license}.",
+                            apache2: "Apache License 2.0",
+                            ccbyncsa4: "CC BY-NC-SA 4.0 License"
+                        },
+                        thirdParty: {
+                            title: "Third party software",
+                            containsThirdPartySoftware: "This software contains free third party software products used under various license conditions. A list of free software to be used and the license conditions under which the particular free software will be passed on, can be found enclosed below.",
+                            providedAsIs: "The software is provided “as is” WITHOUT ANY WARRANTY."
+                        }
+                    }
+                }
+            },
             data: {
                 libs: [
-                {
+                    {
                         name: "Bootstrap",
                         copyright: "Copyright (c) 2011-2020 Twitter, Inc.<br>Copyright (c) 2011-2020 The Bootstrap Authors",
                         license: "MIT",
@@ -93,6 +132,12 @@
                         website: "https://vuelidate.js.org/"
                     },
                     {
+                        name: "Vue I18n",
+                        copyright: "Copyright (c) 2020 kazuya kawaguchi",
+                        license: "MIT",
+                        website: "https://kazupon.github.io/vue-i18n/"
+                    },
+                    {
                         name: "jQuery",
                         copyright: "Copyright OpenJS Foundation and other contributors, https://openjsf.org/",
                         license: "MIT",
@@ -105,7 +150,7 @@
                         website: "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/"
                     },
 
-                    
+
                 ],
                 licenses:
                 {

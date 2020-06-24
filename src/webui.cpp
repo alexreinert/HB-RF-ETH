@@ -55,6 +55,7 @@ EMBED_HANDLER("/bootstrap-vue.min.css", bootstrap_vue_min_css_gzip, "text/css")
 EMBED_HANDLER("/bootstrap-vue.min.js", bootstrap_vue_min_js_gzip, "application/javascript")
 EMBED_HANDLER("/vuelidate.min.js", vuelidate_min_js_gzip, "application/javascript")
 EMBED_HANDLER("/validators.min.js", validators_min_js_gzip, "application/javascript")
+EMBED_HANDLER("/vue-i18n.min.js", vue_i18n_min_js_gzip, "application/javascript")
 EMBED_HANDLER("/favicon.ico", favicon_ico_gzip, "image/x-icon")
 
 static Settings *_settings;
@@ -98,6 +99,10 @@ esp_err_t validate_auth(httpd_req_t *req)
 void add_settings(cJSON *root)
 {
     cJSON *settings = cJSON_AddObjectToObject(root, "settings");
+
+
+    cJSON_AddStringToObject(settings, "adminPassword", "");
+    cJSON_AddStringToObject(settings, "adminPasswordRepeat", "");
 
     cJSON_AddStringToObject(settings, "hostname", _settings->getHostname());
     tcpip_adapter_ip_info_t ipInfo;
@@ -338,7 +343,7 @@ WebUI::WebUI(Settings *settings, LED *statusLED, UpdateCheck *updateCheck)
 void WebUI::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 14;
+    config.max_uri_handlers = 15;
     httpd_handle_t _httpd_handle = NULL;
 
     if (httpd_start(&_httpd_handle, &config) == ESP_OK)
@@ -353,6 +358,7 @@ void WebUI::start()
         httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_js_gzip_handler);
         httpd_register_uri_handler(_httpd_handle, &vuelidate_min_js_gzip_handler);
         httpd_register_uri_handler(_httpd_handle, &validators_min_js_gzip_handler);
+        httpd_register_uri_handler(_httpd_handle, &vue_i18n_min_js_gzip_handler);
         httpd_register_uri_handler(_httpd_handle, &favicon_ico_gzip_handler);
 
         httpd_register_uri_handler(_httpd_handle, &post_ota_update_handler);
