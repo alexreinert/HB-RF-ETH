@@ -24,6 +24,7 @@
 static uint8_t _blinkState = 0;
 static LED *_leds[MAX_LED_COUNT] = {0};
 static TaskHandle_t _switchTaskHandle = NULL;
+static int _highDuty;
 
 void ledSwitcherTask(void *parameter)
 {
@@ -45,8 +46,20 @@ void ledSwitcherTask(void *parameter)
     vTaskDelete(NULL);
 }
 
-void LED::start()
+void LED::start(Settings *settings)
 {
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .duty_resolution = LEDC_TIMER_11_BIT,
+        .timer_num = LEDC_TIMER_0,
+        .freq_hz = 5000,
+        .clk_cfg = LEDC_AUTO_CLK,
+    };
+
+    _highDuty = settings->getLEDBrightness() * (1 << ledc_timer.duty_resolution) / 100;
+
+    ledc_timer_config(&ledc_timer);
+
     if (!_switchTaskHandle)
     {
         xTaskCreate(ledSwitcherTask, "LED_Switcher", 4096, NULL, 10, &_switchTaskHandle);
@@ -62,24 +75,30 @@ void LED::stop()
     }
 }
 
-LED::LED(gpio_num_t pin) : _pin(pin)
+LED::LED(gpio_num_t pin) // : _pin(pin)
 {
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = 1ULL << pin;
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&io_conf);
+    _channel_conf = {
+        .gpio_num = pin,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .channel = LEDC_CHANNEL_MAX,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0,
+        .hpoint = 0,
+    };
 
     for (uint8_t i = 0; i < MAX_LED_COUNT; i++)
     {
         if (_leds[i] == 0)
         {
-            _leds[i] = this;
+            _channel_conf.channel = (ledc_channel_t)i;
             break;
         }
     }
+
+    ledc_channel_config(&_channel_conf);
+
+    _leds[_channel_conf.channel] = this;
 }
 
 void LED::setState(led_state_t state)
@@ -88,27 +107,32 @@ void LED::setState(led_state_t state)
     updatePinState();
 }
 
+void LED::_setPinState(bool enabled) {
+    ledc_set_duty(_channel_conf.speed_mode, _channel_conf.channel, enabled ? _highDuty : 0);
+    ledc_update_duty(_channel_conf.speed_mode, _channel_conf.channel);
+}
+
 void LED::updatePinState()
 {
     switch (_state)
     {
     case LED_STATE_OFF:
-        gpio_set_level(_pin, 0);
+        _setPinState(false);
         break;
     case LED_STATE_ON:
-        gpio_set_level(_pin, 1);
+        _setPinState(true);
         break;
     case LED_STATE_BLINK:
-        gpio_set_level(_pin, (_blinkState % 8) < 4 ? 1 : 0);
+        _setPinState((_blinkState % 8) < 4);
         break;
     case LED_STATE_BLINK_INV:
-        gpio_set_level(_pin, (_blinkState % 8) < 4 ? 0 : 1);
+        _setPinState((_blinkState % 8) >= 4);
         break;
     case LED_STATE_BLINK_FAST:
-        gpio_set_level(_pin, (_blinkState % 2) == 0 ? 1 : 0);
+        _setPinState((_blinkState % 2) == 0);
         break;
     case LED_STATE_BLINK_SLOW:
-        gpio_set_level(_pin, _blinkState < 12 ? 1 : 0);
+        _setPinState(_blinkState < 12);
         break;
     }
 }

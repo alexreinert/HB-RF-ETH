@@ -104,6 +104,8 @@ void Settings::load()
     snprintf(_ntpServer, sizeof(_ntpServer), "pool.ntp.org");
   }
 
+  GET_INT(handle, "ledBrightness", _ledBrightness, 100);
+
   nvs_close(handle);
 }
 
@@ -130,6 +132,8 @@ void Settings::save()
   SET_INT(handle, "gpsBaudrate", _gpsBaudrate);
 
   SET_STR(handle, "ntpServer", _ntpServer);
+
+  SET_INT(handle, "ledBrightness", _ledBrightness);
 
   nvs_close(handle);
 }
@@ -240,4 +244,14 @@ char *Settings::getNtpServer()
 void Settings::setNtpServer(char *ntpServer)
 {
   snprintf(_ntpServer, sizeof(_ntpServer), ntpServer);
+}
+
+int Settings::getLEDBrightness()
+{
+  return _ledBrightness;
+}
+
+void Settings::setLEDBrightness(int ledBrightness)
+{
+  _ledBrightness = ledBrightness;
 }

@@ -112,7 +112,7 @@
                     </b-input-group>
                 </b-form-group>
                 <b-form-group :label="$t('settings.gpsBaudrate')" label-cols-sm="4" v-if="isGpsActivated">
-                    <b-form-select v-model.number="settings.gpsBaudrate" class="mb-3">
+                    <b-form-select v-model.number="settings.gpsBaudrate">
                         <b-form-select-option :value="4800">4800</b-form-select-option>
                         <b-form-select-option :value="9600">9600</b-form-select-option>
                         <b-form-select-option :value="19200">19200</b-form-select-option>
@@ -120,6 +120,20 @@
                         <b-form-select-option :value="57600">57600</b-form-select-option>
                         <b-form-select-option :value="115200">115200</b-form-select-option>
                     </b-form-select>
+                </b-form-group>
+                <hr>
+                <b-form-group :label="$t('settings.ledBrightness')" label-cols-sm="4">
+                    <b-input-group append="%">
+                        <b-form-select v-model.number="settings.ledBrightness">
+                            <b-form-select-option :value="0">0</b-form-select-option>
+                            <b-form-select-option :value="5">5</b-form-select-option>
+                            <b-form-select-option :value="10">10</b-form-select-option>
+                            <b-form-select-option :value="25">25</b-form-select-option>
+                            <b-form-select-option :value="50">50</b-form-select-option>
+                            <b-form-select-option :value="75">75</b-form-select-option>
+                            <b-form-select-option :value="100">100</b-form-select-option>
+                        </b-form-select>
+                    </b-input-group>
                 </b-form-group>
 
                 <b-alert variant="success" :show="settings.success!=null" dismissible fade

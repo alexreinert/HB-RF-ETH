@@ -33,6 +33,7 @@ var app = new Vue({
             dcfOffset: 0,
             gpsBaudrate: 9600,
             ntpServer: "",
+            ledBrightness: 100,
 
             success: null,
             error: null,
@@ -125,6 +126,7 @@ var app = new Vue({
                     ntpServer: "NTP Server",
                     dcfOffset: "DCF Versatz",
                     gpsBaudrate: "GPS Baudrate",
+                    ledBrightness: "LED Helligkeit",
                     save: "Speichern",
                     saveSuccess: "Einstellungen wurden erfolgreich gespeichert. Bitte starten Sie das System neu um sie zu übernehmen.",
                     saveError: "Es ist ein Fehler aufgetreten."
@@ -171,6 +173,7 @@ var app = new Vue({
                     ntpServer: "NTP Server",
                     dcfOffset: "DCF Offset",
                     gpsBaudrate: "GPS Baudrate",
+                    ledBrightness: "LED brightness",
                     save: "Save",
                     saveSuccess: "Settings were successfully saved. Please restart to take them effect.",
                     saveError: "An error occured."

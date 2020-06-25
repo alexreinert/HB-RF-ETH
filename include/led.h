@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 #include "driver/gpio.h"
+#include "driver/ledc.h"
+#include "settings.h"
 
 #define MAX_LED_COUNT 5
 
@@ -36,11 +38,12 @@ typedef enum
 class LED
 {
 private:
-    gpio_num_t _pin;
     uint8_t _state;
+    ledc_channel_config_t _channel_conf;
+    void _setPinState(bool enabled);
 
 public:
-    static void start();
+    static void start(Settings *settings);
     static void stop();
 
     LED(gpio_num_t pin);

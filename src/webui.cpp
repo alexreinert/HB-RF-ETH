@@ -127,6 +127,8 @@ void add_settings(cJSON *root)
     cJSON_AddNumberToObject(settings, "gpsBaudrate", _settings->getGpsBaudrate());
 
     cJSON_AddStringToObject(settings, "ntpServer", _settings->getNtpServer());
+
+    cJSON_AddNumberToObject(settings, "ledBrightness", _settings->getLEDBrightness());
 }
 
 esp_err_t get_data_json_handler_func(httpd_req_t *req)
@@ -217,6 +219,8 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
 
         char *ntpServer = cJSON_GetStringValue(cJSON_GetObjectItem(root, "ntpServer"));
 
+        int ledBrightness = cJSON_GetObjectItem(root, "ledBrightness")->valueint;
+
         if (adminPassword && strlen(adminPassword) > 0)
             _settings->setAdminPassword(adminPassword);
 
@@ -225,6 +229,7 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
         _settings->setDcfOffset(dcfOffset);
         _settings->setGpsBaudrate(gpsBaudrate);
         _settings->setNtpServer(ntpServer);
+        _settings->setLEDBrightness(ledBrightness);
 
         _settings->save();
 

@@ -49,6 +49,8 @@ private:
 
   char _ntpServer[64] = {0};
 
+  int _ledBrightness;
+
 public:
   Settings();
   void load();
@@ -79,4 +81,7 @@ public:
 
   char *getNtpServer();
   void setNtpServer(char *ntpServer);
+
+  int getLEDBrightness();
+  void setLEDBrightness(int brightness);
 };

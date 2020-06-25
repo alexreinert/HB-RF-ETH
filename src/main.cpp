@@ -50,6 +50,8 @@ extern "C"
 
 void app_main()
 {
+    Settings settings;
+
     LED powerLED(LED_PWR_PIN);
     LED statusLED(LED_STATUS_PIN);
 
@@ -57,7 +59,7 @@ void app_main()
     LED greenLED(HM_GREEN_PIN);
     LED blueLED(HM_BLUE_PIN);
 
-    LED::start();
+    LED::start(&settings);
 
     powerLED.setState(LED_STATE_BLINK);
     statusLED.setState(LED_STATE_BLINK_INV);
@@ -65,8 +67,6 @@ void app_main()
     redLED.setState(LED_STATE_OFF);
     greenLED.setState(LED_STATE_OFF);
     blueLED.setState(LED_STATE_OFF);
-
-    Settings settings;
 
     board_type_t boardType = BoardDetector::detect();
 

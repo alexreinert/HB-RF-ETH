@@ -66,7 +66,6 @@ Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als
 * WebUI: Besseres parsing multipart/form-data bei OTA Update
 * Transportverschlüsselung raw-uart
 * Detailerkennung des aufgesteckten Funkmoduls
-* Einstellung der maximalen LED Helligkeit
 * LED Fading
 * SNMP
 * CheckMK Agent
