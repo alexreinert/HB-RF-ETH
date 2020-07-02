@@ -60,13 +60,24 @@ EMBED_HANDLER("/favicon.ico", favicon_ico_gzip, "image/x-icon")
 
 static Settings *_settings;
 static LED *_statusLED;
+static SysInfo *_sysInfo;
 static UpdateCheck *_updateCheck;
+static RawUartUdpListener *_rawUartUdpListener;
 
-char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
+const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
 {
     if (addr.addr == IPADDR_ANY || addr.addr == IPADDR_NONE)
     {
         return ip4addr_ntoa(&fallback);
+    }
+    return ip4addr_ntoa(&addr);
+}
+
+const char *ip2str(ip4_addr_t addr)
+{
+    if (addr.addr == IPADDR_ANY || addr.addr == IPADDR_NONE)
+    {
+        return "";
     }
     return ip4addr_ntoa(&addr);
 }
@@ -100,7 +111,6 @@ void add_settings(cJSON *root)
 {
     cJSON *settings = cJSON_AddObjectToObject(root, "settings");
 
-
     cJSON_AddStringToObject(settings, "adminPassword", "");
     cJSON_AddStringToObject(settings, "adminPasswordRepeat", "");
 
@@ -131,6 +141,20 @@ void add_settings(cJSON *root)
     cJSON_AddNumberToObject(settings, "ledBrightness", _settings->getLEDBrightness());
 }
 
+void add_sysInfo(cJSON *root)
+{
+    cJSON *sysinfo = cJSON_AddObjectToObject(root, "sysInfo");
+
+    cJSON_AddStringToObject(sysinfo, "serial", _sysInfo->getSerialNumber());
+    cJSON_AddStringToObject(sysinfo, "currentVersion", _sysInfo->getCurrentVersion());
+    cJSON_AddStringToObject(sysinfo, "latestVersion", _updateCheck->getLatestVersion());
+
+    cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
+
+    cJSON_AddNumberToObject(sysinfo, "memoryUsage", _sysInfo->getMemoryUsage());
+    cJSON_AddNumberToObject(sysinfo, "cpuUsage", _sysInfo->getCpuUsage());
+}
+
 esp_err_t get_data_json_handler_func(httpd_req_t *req)
 {
     bool isAuthenticated = (validate_auth(req) == ESP_OK);
@@ -140,10 +164,7 @@ esp_err_t get_data_json_handler_func(httpd_req_t *req)
 
     cJSON_AddBoolToObject(root, "loggedIn", isAuthenticated);
 
-    cJSON *sysinfo = cJSON_AddObjectToObject(root, "sysInfo");
-
-    cJSON_AddStringToObject(sysinfo, "currentVersion", _updateCheck->getCurrentVersion());
-    cJSON_AddStringToObject(sysinfo, "latestVersion", _updateCheck->getLatestVersion());
+    add_sysInfo(root);
 
     if (isAuthenticated)
         add_settings(root);
@@ -315,7 +336,6 @@ esp_err_t post_ota_update_handler_func(httpd_req_t *req)
             OTA_CHECK(esp_ota_write(ota_handle, ota_buff, recv_len) == ESP_OK, "Error writing OTA");
             content_received += recv_len;
         }
-
     } while ((recv_len > 0) && (content_received < content_length));
 
     OTA_CHECK(esp_ota_end(ota_handle) == ESP_OK, "Error writing OTA");
@@ -338,11 +358,13 @@ httpd_uri_t post_ota_update_handler = {
     .handler = post_ota_update_handler_func,
     .user_ctx = NULL};
 
-WebUI::WebUI(Settings *settings, LED *statusLED, UpdateCheck *updateCheck)
+WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener)
 {
     _settings = settings;
     _statusLED = statusLED;
+    _sysInfo = sysInfo;
     _updateCheck = updateCheck;
+    _rawUartUdpListener = rawUartUdpListener;
 }
 
 void WebUI::start()

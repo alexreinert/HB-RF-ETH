@@ -24,7 +24,6 @@
 
 #include "pins.h"
 #include "led.h"
-#include "boarddetector.h"
 #include "settings.h"
 #include "rtc.h"
 #include "systemclock.h"
@@ -68,7 +67,7 @@ void app_main()
     greenLED.setState(LED_STATE_OFF);
     blueLED.setState(LED_STATE_OFF);
 
-    board_type_t boardType = BoardDetector::detect();
+    SysInfo sysInfo;
 
     PushButtonHandler pushButton;
     pushButton.handleStartupFactoryReset(&powerLED, &statusLED, &settings);
@@ -114,10 +113,10 @@ void app_main()
     NtpServer ntpServer(&clk);
     ntpServer.start();
 
-    UpdateCheck updateCheck(boardType, &statusLED);
+    UpdateCheck updateCheck(&sysInfo, &statusLED);
     updateCheck.start();
 
-    WebUI webUI(&settings, &statusLED, &updateCheck);
+    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &rawUartUdpLister);
     webUI.start();
 
     powerLED.setState(LED_STATE_ON);

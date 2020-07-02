@@ -46,6 +46,28 @@
             </b-form>
         </b-card>
 
+        <b-card :header="$t('sysInfo.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
+            v-if="login.isLoggedIn" class="mb-3">
+            <b-form @submit.stop.prevent>
+                <b-form-group :label="$t('sysInfo.serial')" label-cols-sm="4">
+                    <b-form-input type="text" v-model="sysInfo.serial" disabled></b-form-input>
+                </b-form-group>
+                <b-form-group :label="$t('sysInfo.cpuUsage')" label-cols-sm="4">
+                    <b-progress max="100" height="2.25rem" class="form-control p-0">
+                        <b-progress-bar :value="sysInfo.cpuUsage" :label-html="`<span class='justify-content-center d-flex position-absolute w-100 text-dark'>${sysInfo.cpuUsage.toFixed(2)}%</span>`"></b-progress-bar>
+                    </b-progress>
+                </b-form-group>
+                <b-form-group :label="$t('sysInfo.memoryUsage')" label-cols-sm="4">
+                    <b-progress max="100" height="2.25rem" class="form-control p-0">
+                        <b-progress-bar :value="sysInfo.memoryUsage" :label-html="`<span class='justify-content-center d-flex position-absolute w-100 text-dark'>${sysInfo.memoryUsage.toFixed(2)}%</span>`"></b-progress-bar>
+                    </b-progress>
+                </b-form-group>
+                <b-form-group :label="$t('sysInfo.rawUartRemoteAddress')" label-cols-sm="4">
+                    <b-form-input type="text" v-model="sysInfo.rawUartRemoteAddress" disabled></b-form-input>
+                </b-form-group>
+            </b-form>
+        </b-card>
+
         <b-card :header="$t('settings.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
             v-if="login.isLoggedIn" class="mb-3">
             <b-form @submit.stop.prevent>

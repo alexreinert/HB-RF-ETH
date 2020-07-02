@@ -6,7 +6,7 @@ Meine Entwicklungen im Homematic Umfeld sind sehr kostenintensiv, z.B. werden vi
 ### Worum es geht
 Dieses Repository enhält die Firmware für die HB-RF-ETH Platine, welches es ermöglicht, ein Homematic Funkmodul HM-MOD-RPI-PCB oder RPI-RF-MOD per Netzwerk an eine debmatic oder piVCCU3 Installation anzubinden.
 
-Hierbei gilt, dass bei einer debmatic oder piVCCU3 immer nur ein Funkmodul angebunden werden kann, egal ob diese direkt per GPIO Leiste, USB mittels HB-RF-USB(-2) Platine oder per HB-RF-ETH Platine erfolgt.
+Hierbei gilt, dass bei einer debmatic oder piVCCU3 Installation immer nur ein Funkmodul angebunden werden kann, egal ob die Anbindung direkt per GPIO Leiste, USB mittels HB-RF-USB(-2) Platine oder per HB-RF-ETH Platine erfolgt.
 
 ### Was kann die Firmware
 * Bereitstellung des Funkmoduls RPI-RF-MOD oder HM-MOD-RPI-PCB per UDP als raw-uart Gerät inkl. Ansteuerung der LEDs des RPI-RF-MODs
@@ -62,8 +62,6 @@ Firmware Updates sind fertig kompiliert und Releases zu finden und können per W
 ### Roadmap
 Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als zufällig anzusehen und es ist nicht garantiert, dass alle Punkte auch umgesetzt werden.
 
-* WebUI: Aktuellen Status anzeigen
-* WebUI: Besseres parsing multipart/form-data bei OTA Update
 * Transportverschlüsselung raw-uart
 * Detailerkennung des aufgesteckten Funkmoduls
 * LED Fading
@@ -72,5 +70,5 @@ Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als
 * LAN GW Modus
 * AskSin Analyzer Light
 
-## Lizenz
+### Lizenz
 Die Firmware steht unter Apache 2.0 Lizenz.

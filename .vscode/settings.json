@@ -60,6 +60,7 @@
     },
     "license-header-manager.excludeExtensions": [
         ".js",
-        ".css"
+        ".css",
+        ".py"
     ]
 }

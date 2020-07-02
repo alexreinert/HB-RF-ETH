@@ -75,7 +75,7 @@ void LED::stop()
     }
 }
 
-LED::LED(gpio_num_t pin) // : _pin(pin)
+LED::LED(gpio_num_t pin)
 {
     _channel_conf = {
         .gpio_num = pin,

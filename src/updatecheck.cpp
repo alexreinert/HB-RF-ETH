@@ -18,7 +18,6 @@
 
 #include "updatecheck.h"
 #include "esp_http_client.h"
-#include "esp_ota_ops.h"
 #include "esp_log.h"
 #include "string.h"
 #include "cJSON.h"
@@ -32,13 +31,8 @@ void _update_check_task_func(void *parameter)
   }
 }
 
-UpdateCheck::UpdateCheck(board_type_t boardType, LED *statusLED) : _boardType(boardType), _statusLED(statusLED)
+UpdateCheck::UpdateCheck(SysInfo* sysInfo, LED *statusLED) : _sysInfo(sysInfo), _statusLED(statusLED)
 {
-  _currentVersion = esp_ota_get_app_description()->version;
-
-  uint8_t baseMac[6];
-  esp_read_mac(baseMac, ESP_MAC_ETH);
-  snprintf(_serial, sizeof(_serial), "%02X%02X%02X%02X%02X%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
 }
 
 void UpdateCheck::start()
@@ -51,11 +45,6 @@ void UpdateCheck::stop()
   vTaskDelete(_tHandle);
 }
 
-const char *UpdateCheck::getCurrentVersion()
-{
-  return _currentVersion;
-}
-
 const char *UpdateCheck::getLatestVersion()
 {
   return _latestVersion;
@@ -64,7 +53,7 @@ const char *UpdateCheck::getLatestVersion()
 void UpdateCheck::_updateLatestVersion()
 {
   char url[128];
-  snprintf(url, sizeof(url), "https://www.debmatic.de/hb-rf-eth/latestVersion.json?board=%d&serial=%s&version=%s", _boardType, _serial, _currentVersion);
+  snprintf(url, sizeof(url), "https://www.debmatic.de/hb-rf-eth/latestVersion.json?board=%d&serial=%s&version=%s", _sysInfo->getBoardType(), _sysInfo->getSerialNumber(), _sysInfo->getCurrentVersion());
 
   esp_http_client_config_t config = {};
   config.url = url;
@@ -103,7 +92,7 @@ void UpdateCheck::_taskFunc()
     ESP_LOGI(TAG, "Start checking for the latest available firmware.");
     _updateLatestVersion();
 
-    if (strcmp(_latestVersion, "n/a") != 0 && strcmp(_currentVersion, _latestVersion) < 0)
+    if (strcmp(_latestVersion, "n/a") != 0 && strcmp(_sysInfo->getCurrentVersion(), _latestVersion) < 0)
     {
       ESP_LOGW(TAG, "An updated firmware with version %s is available.", _latestVersion);
       _statusLED->setState(LED_STATE_BLINK_SLOW);

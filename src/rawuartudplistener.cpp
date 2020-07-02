@@ -167,6 +167,22 @@ void RawUartUdpListener::handlePacket(pbuf *pb, ip4_addr_t addr, uint16_t port)
   }
 }
 
+ip4_addr_t RawUartUdpListener::getConnectedRemoteAddress()
+{
+  uint16_t port = atomic_load(&_remotePort);
+  uint32_t address = atomic_load(&_remoteAddress);
+
+  if (port)
+  {
+    ip4_addr_t res{.addr = address};
+    return res;
+  }
+  else
+  {
+    return IP4_ADDR_ANY->u_addr.ip4;
+  }
+}
+
 void RawUartUdpListener::sendMessage(unsigned char command, unsigned char *buffer, size_t len)
 {
   uint16_t port = atomic_load(&_remotePort);
@@ -250,8 +266,8 @@ void RawUartUdpListener::_udpQueueHandler()
     {
       int64_t now = esp_timer_get_time();
 
-      if (now > _lastReceivedKeepAlive + 1500000)
-      { // 1.5 sec
+      if (now > _lastReceivedKeepAlive + 5000000)
+      { // 5 sec
         atomic_store(&_remotePort, (ushort)0);
         atomic_store(&_connectionStarted, false);
         atomic_store(&_remoteAddress, 0u);
@@ -283,11 +299,11 @@ bool RawUartUdpListener::_udpReceivePacket(pbuf *pb, const ip_addr_t *addr, uint
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
 
-    ip_hdr *iphdr = reinterpret_cast<ip_hdr *>(pb->payload - UDP_HLEN - IP_HLEN);
-    e->addr.addr = iphdr->src.addr;
+  ip_hdr *iphdr = reinterpret_cast<ip_hdr *>(pb->payload - UDP_HLEN - IP_HLEN);
+  e->addr.addr = iphdr->src.addr;
 
-    udp_hdr *udphdr = reinterpret_cast<udp_hdr *>(pb->payload - UDP_HLEN);
-    e->port = ntohs(udphdr->src);
+  udp_hdr *udphdr = reinterpret_cast<udp_hdr *>(pb->payload - UDP_HLEN);
+  e->port = ntohs(udphdr->src);
 
 #pragma GCC diagnostic pop
 

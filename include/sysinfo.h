@@ -1,5 +1,5 @@
 /* 
- *  boarddetector.h is part of the HB-RF-ETH firmware - https://github.com/alexreinert/HB-RF-ETH
+ *  sysinfo.h is part of the HB-RF-ETH firmware - https://github.com/alexreinert/HB-RF-ETH
  *  
  *  Copyright 2020 Alexander Reinert
  *  
@@ -25,8 +25,13 @@ typedef enum
     BOARD_TYPE_UNKNOWN = 255
 } board_type_t;
 
-class BoardDetector
+class SysInfo
 {
 public:
-    static board_type_t detect();
+    SysInfo();
+    double getCpuUsage();
+    double getMemoryUsage();
+    const char* getCurrentVersion();
+    const char *getSerialNumber();
+    board_type_t getBoardType();
 };

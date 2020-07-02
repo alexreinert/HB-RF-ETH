@@ -47,6 +47,8 @@ class RawUartUdpListener : FrameHandler {
     void handleFrame(unsigned char* buffer, uint16_t len);
     void handleEvent();
 
+    ip4_addr_t getConnectedRemoteAddress();
+
     void start();
     void stop();
 

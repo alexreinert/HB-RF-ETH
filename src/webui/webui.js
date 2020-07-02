@@ -45,8 +45,12 @@ var app = new Vue({
             error: null,
         },
         sysInfo: {
+            serial: "",
             currentVersion: "",
-            latestVersion: ""
+            latestVersion: "",
+            rawUartRemoteAddress: "",
+            memoryUsage: 0.0,
+            cpuUsage: 0.0
         }
     },
     validations: {
@@ -106,6 +110,13 @@ var app = new Vue({
                     login: "Anmelden",
                     loginError: "Anmelden war nicht erfolgreich."
                 },
+                sysInfo: {
+                    title: "Systeminformationen",
+                    serial: "Seriennummer",
+                    cpuUsage: "CPU Auslastung",
+                    memoryUsage: "Speicherauslastung",
+                    rawUartRemoteAddress: "Verbunden mit"
+                },
                 settings: {
                     title: "Einstellungen",
                     changePassword: "Passwort ändern",
@@ -152,6 +163,13 @@ var app = new Vue({
                     password: "Password",
                     login: "Login",
                     loginError: "Login was not successful."
+                },
+                sysInfo: {
+                    title: "System information",
+                    serial: "Serial number",
+                    cpuUsage: "CPU usage",
+                    memoryUsage: "Memory usage",
+                    rawUartRemoteAddress: "Connected with"
                 },
                 settings: {
                     title: "Settings",
@@ -226,6 +244,7 @@ var app = new Vue({
                         self.sysInfo = json.sysInfo;
                         self.settings = json.settings;
                         self.$v.settings.$touch();
+                        self.sysInfoTimer = window.setTimeout(self.updateSysInfo, 5000);
                     } else {
                         self.login.error = self.$t('login.loginError');
                     }
@@ -310,6 +329,28 @@ var app = new Vue({
                     self.settings.adminPassword = "";
                 }
             });
-        }
+        },
+        updateSysInfo: function () {
+            var self = this;
+            self.login.error = null;
+            $.ajax({
+                url: "getData.json",
+                type: 'GET',
+                cache: false,
+                dataType: "json",
+                success: function (json) {
+                    self.sysInfo = json.sysInfo;
+                    self.sysInfoTimer = window.setTimeout(self.updateSysInfo, 5000);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                }
+            });
+        },
+    },
+    created() {
+        
+    },
+    beforeDestroy() {
+        clearInterval(this.sysInfoTimer);
     }
 });

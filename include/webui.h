@@ -21,6 +21,7 @@
 #include "settings.h"
 #include "led.h"
 #include "updatecheck.h"
+#include "rawuartudplistener.h"
 #include "esp_http_server.h"
 
 class WebUI
@@ -29,7 +30,7 @@ private:
     httpd_handle_t _httpd_handle;
 
 public:
-    WebUI(Settings* settings, LED* statusLED, UpdateCheck* updateCheck);
+    WebUI(Settings* settings, LED* statusLED, SysInfo *sysInfo, UpdateCheck* updateCheck, RawUartUdpListener* rawUartUdpListener);
     void start();
     void stop();
 };

@@ -20,27 +20,24 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "boarddetector.h"
+#include "sysinfo.h"
 #include "led.h"
 
 class UpdateCheck
 {
 private:
-    board_type_t _boardType;
-    const char* _currentVersion;
+    SysInfo* _sysInfo;
     LED *_statusLED;
     TaskHandle_t _tHandle = NULL;   
     void _updateLatestVersion();
     char _latestVersion[33] = "n/a";
-    char _serial[13];
 
 public:
-    UpdateCheck(board_type_t boardType, LED *statusLED);
+    UpdateCheck(SysInfo* sysInfo, LED *statusLED);
     void start();
     void stop();
 
     const char* getLatestVersion();
-    const char* getCurrentVersion();
 
     void _taskFunc();
 };
