@@ -4,3 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 src/webui/*.gzip
+webui/.cache
+webui/dist
+webui/node_modules
+

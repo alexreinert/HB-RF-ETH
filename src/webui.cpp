@@ -25,6 +25,7 @@
 #include "cJSON.h"
 #include "esp_ota_ops.h"
 #include "tcpip_adapter.h"
+#include "mbedtls/md.h"
 #include "mbedtls/base64.h"
 
 static const char *TAG = "WebUI";
@@ -45,24 +46,17 @@ static const char *TAG = "WebUI";
         .handler = _resource##_handler_func,                           \
         .user_ctx = NULL};
 
-EMBED_HANDLER("/", index_htm_gzip, "text/html")
-EMBED_HANDLER("/about.htm", about_htm_gzip, "text/html")
-EMBED_HANDLER("/webui.js", webui_js_gzip, "application/javascript")
-EMBED_HANDLER("/jquery.min.js", jquery_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/vue.min.js", vue_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/bootstrap.min.css", bootstrap_min_css_gzip, "text/css")
-EMBED_HANDLER("/bootstrap-vue.min.css", bootstrap_vue_min_css_gzip, "text/css")
-EMBED_HANDLER("/bootstrap-vue.min.js", bootstrap_vue_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/vuelidate.min.js", vuelidate_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/validators.min.js", validators_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/vue-i18n.min.js", vue_i18n_min_js_gzip, "application/javascript")
-EMBED_HANDLER("/favicon.ico", favicon_ico_gzip, "image/x-icon")
+EMBED_HANDLER("/*", index_html_gz, "text/html")
+EMBED_HANDLER("/main.1e43358e.js", main_1e43358e_js_gz, "application/javascript")
+EMBED_HANDLER("/main.1e43358e.css", main_1e43358e_css_gz, "text/css")
+EMBED_HANDLER("/favicon.26242483.ico", favicon_26242483_ico_gz, "image/x-icon")
 
 static Settings *_settings;
 static LED *_statusLED;
 static SysInfo *_sysInfo;
 static UpdateCheck *_updateCheck;
 static RawUartUdpListener *_rawUartUdpListener;
+static char _token[46];
 
 const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
 {
@@ -84,35 +78,95 @@ const char *ip2str(ip4_addr_t addr)
 
 esp_err_t validate_auth(httpd_req_t *req)
 {
-    char auth[64] = {0};
+    char auth[60] = {0};
     if (httpd_req_get_hdr_value_str(req, "Authorization", auth, sizeof(auth)) != ESP_OK)
         return ESP_FAIL;
 
-    if (strncmp(auth, "Basic ", 6) != 0)
+    if (strncmp(auth, "Token ", 6) != 0)
         return ESP_FAIL;
 
-    char decoded[64] = {0};
-    size_t decodedLength;
-    if (mbedtls_base64_decode((unsigned char *)decoded, sizeof(decoded), &decodedLength, (unsigned char *)auth + 6, strlen(auth + 6)) != 0)
-        return ESP_FAIL;
-
-    decoded[decodedLength] = 0;
-
-    if (strncmp(decoded, "admin:", 6) != 0)
-        return ESP_FAIL;
-
-    if (strcmp(decoded + 6, _settings->getAdminPassword()) != 0)
+    if (strcmp(auth + 6, _token) != 0)
         return ESP_FAIL;
 
     return ESP_OK;
 }
 
+esp_err_t post_login_json_handler_func(httpd_req_t *req)
+{
+    char buffer[1024];
+    int len = httpd_req_recv(req, buffer, sizeof(buffer) - 1);
+
+    if (len > 0)
+    {
+        buffer[len] = 0;
+
+        cJSON *root = cJSON_Parse(buffer);
+
+        char *password = cJSON_GetStringValue(cJSON_GetObjectItem(root, "password"));
+
+        bool isAuthenticated = (password != NULL) && (strcmp(password, _settings->getAdminPassword()) == 0);
+
+        cJSON_Delete(root);
+
+        httpd_resp_set_type(req, "application/json");
+        root = cJSON_CreateObject();
+
+        cJSON_AddBoolToObject(root, "isAuthenticated", isAuthenticated);
+        if (isAuthenticated)
+        {
+            cJSON_AddStringToObject(root, "token", _token);
+        }
+
+        const char *json = cJSON_Print(root);
+        httpd_resp_sendstr(req, json);
+        free((void *)json);
+        cJSON_Delete(root);
+
+        return ESP_OK;
+    }
+
+    return ESP_FAIL;
+}
+
+httpd_uri_t post_login_json_handler = {
+    .uri = "/login.json",
+    .method = HTTP_POST,
+    .handler = post_login_json_handler_func,
+    .user_ctx = NULL};
+
+esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON *sysinfo = cJSON_AddObjectToObject(root, "sysInfo");
+
+    cJSON_AddStringToObject(sysinfo, "serial", _sysInfo->getSerialNumber());
+    cJSON_AddStringToObject(sysinfo, "currentVersion", _sysInfo->getCurrentVersion());
+    cJSON_AddStringToObject(sysinfo, "latestVersion", _updateCheck->getLatestVersion());
+
+    cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
+
+    cJSON_AddNumberToObject(sysinfo, "memoryUsage", _sysInfo->getMemoryUsage());
+    cJSON_AddNumberToObject(sysinfo, "cpuUsage", _sysInfo->getCpuUsage());
+
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+
+    return ESP_OK;
+}
+
+httpd_uri_t get_sysinfo_json_handler = {
+    .uri = "/sysinfo.json",
+    .method = HTTP_GET,
+    .handler = get_sysinfo_json_handler_func,
+    .user_ctx = NULL};
+
 void add_settings(cJSON *root)
 {
     cJSON *settings = cJSON_AddObjectToObject(root, "settings");
-
-    cJSON_AddStringToObject(settings, "adminPassword", "");
-    cJSON_AddStringToObject(settings, "adminPasswordRepeat", "");
 
     cJSON_AddStringToObject(settings, "hostname", _settings->getHostname());
     tcpip_adapter_ip_info_t ipInfo;
@@ -141,33 +195,19 @@ void add_settings(cJSON *root)
     cJSON_AddNumberToObject(settings, "ledBrightness", _settings->getLEDBrightness());
 }
 
-void add_sysInfo(cJSON *root)
+esp_err_t get_settings_json_handler_func(httpd_req_t *req)
 {
-    cJSON *sysinfo = cJSON_AddObjectToObject(root, "sysInfo");
-
-    cJSON_AddStringToObject(sysinfo, "serial", _sysInfo->getSerialNumber());
-    cJSON_AddStringToObject(sysinfo, "currentVersion", _sysInfo->getCurrentVersion());
-    cJSON_AddStringToObject(sysinfo, "latestVersion", _updateCheck->getLatestVersion());
-
-    cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
-
-    cJSON_AddNumberToObject(sysinfo, "memoryUsage", _sysInfo->getMemoryUsage());
-    cJSON_AddNumberToObject(sysinfo, "cpuUsage", _sysInfo->getCpuUsage());
-}
-
-esp_err_t get_data_json_handler_func(httpd_req_t *req)
-{
-    bool isAuthenticated = (validate_auth(req) == ESP_OK);
+    if (validate_auth(req) != ESP_OK)
+    {
+        httpd_resp_set_status(req, "401 Not authorized");
+        httpd_resp_sendstr(req, "401 Not authorized");
+        return ESP_OK;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
 
-    cJSON_AddBoolToObject(root, "loggedIn", isAuthenticated);
-
-    add_sysInfo(root);
-
-    if (isAuthenticated)
-        add_settings(root);
+    add_settings(root);
 
     const char *json = cJSON_Print(root);
     httpd_resp_sendstr(req, json);
@@ -177,10 +217,10 @@ esp_err_t get_data_json_handler_func(httpd_req_t *req)
     return ESP_OK;
 }
 
-httpd_uri_t get_data_json_handler = {
-    .uri = "/getData.json",
+httpd_uri_t get_settings_json_handler = {
+    .uri = "/settings.json",
     .method = HTTP_GET,
-    .handler = get_data_json_handler_func,
+    .handler = get_settings_json_handler_func,
     .user_ctx = NULL};
 
 ip4_addr_t cJSON_GetIPAddrValue(const cJSON *item)
@@ -365,32 +405,47 @@ WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *
     _sysInfo = sysInfo;
     _updateCheck = updateCheck;
     _rawUartUdpListener = rawUartUdpListener;
+
+    char tokenBase[21];
+    *((uint32_t *)tokenBase) = esp_random();
+    *((uint32_t *)(tokenBase + sizeof(uint32_t))) = esp_random();
+    strcpy(tokenBase + 2 * sizeof(uint32_t), _sysInfo->getSerialNumber());
+
+    unsigned char shaResult[32];
+
+    mbedtls_md_context_t ctx;
+    mbedtls_md_init(&ctx);
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
+    mbedtls_md_starts(&ctx);
+    mbedtls_md_update(&ctx, (unsigned char *)tokenBase, 20);
+    mbedtls_md_finish(&ctx, shaResult);
+    mbedtls_md_free(&ctx);
+
+    size_t tokenLength;
+    mbedtls_base64_encode((unsigned char *)_token, sizeof(_token), &tokenLength, shaResult, sizeof(shaResult));
+    _token[tokenLength] = 0;
 }
 
 void WebUI::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 15;
+    config.max_uri_handlers = 10;
+    config.uri_match_fn = httpd_uri_match_wildcard;
+
     httpd_handle_t _httpd_handle = NULL;
 
     if (httpd_start(&_httpd_handle, &config) == ESP_OK)
     {
-        httpd_register_uri_handler(_httpd_handle, &index_htm_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &about_htm_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &webui_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &jquery_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &vue_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_min_css_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_css_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &bootstrap_vue_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &vuelidate_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &validators_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &vue_i18n_min_js_gzip_handler);
-        httpd_register_uri_handler(_httpd_handle, &favicon_ico_gzip_handler);
-
-        httpd_register_uri_handler(_httpd_handle, &post_ota_update_handler);
+        httpd_register_uri_handler(_httpd_handle, &post_login_json_handler);
+        httpd_register_uri_handler(_httpd_handle, &get_sysinfo_json_handler);
+        httpd_register_uri_handler(_httpd_handle, &get_settings_json_handler);
         httpd_register_uri_handler(_httpd_handle, &post_settings_json_handler);
-        httpd_register_uri_handler(_httpd_handle, &get_data_json_handler);
+        httpd_register_uri_handler(_httpd_handle, &post_ota_update_handler);
+
+        httpd_register_uri_handler(_httpd_handle, &main_1e43358e_js_gz_handler);
+        httpd_register_uri_handler(_httpd_handle, &main_1e43358e_css_gz_handler);
+        httpd_register_uri_handler(_httpd_handle, &favicon_26242483_ico_gz_handler);
+        httpd_register_uri_handler(_httpd_handle, &index_html_gz_handler);
     }
 }
 

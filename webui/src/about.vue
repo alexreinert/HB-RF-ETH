@@ -1,164 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
+<template>
+  <div>
+    <b-card
+      :header="$t('about.title')"
+      header-tag="h6"
+      header-bg-variant="secondary"
+      header-text-variant="white"
+      class="mb-3"
+    >
+      <p>Copyright (c) 2020, Alexander Reinert</p>
+      <i18n path="about.license" tag="p">
+        <template v-slot:link>
+          <a
+            href="https://github.com/alexreinert/HB-RF-ETH"
+            target="_new"
+          >{{ $t('about.firmware') }}</a>
+        </template>
+        <template v-slot:license>
+          <a
+            href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
+            target="_new"
+          >{{ $t('about.apache2') }}</a>
+        </template>
+      </i18n>
+      <i18n path="about.license" tag="p">
+        <template v-slot:link>
+          <a href="https://github.com/alexreinert/PCB" target="_new">{{ $t('about.hardware') }}</a>
+        </template>
+        <template v-slot:license>
+          <a
+            place="license"
+            href="https://github.com/alexreinert/PCB/blob/master/LICENSE.md"
+            target="_new"
+          >{{ $t('about.ccbyncsa4') }}</a>
+        </template>
+      </i18n>
+    </b-card>
 
-<head>
-    <title>HB-RF-ETH</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="bootstrap.min.css">
-    <link rel="stylesheet" href="bootstrap-vue.min.css">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <script src="jquery.min.js"></script>
-    <script src="vue.min.js"></script>
-    <script src="bootstrap-vue.min.js"></script>
-    <script src="validators.min.js"></script>
-    <script src="vuelidate.min.js"></script>
-    <script src="vue-i18n.min.js"></script>
-    <style>
-        #app {
-            max-width: 600px;
+    <b-card
+      :header="$t('thirdParty.title')"
+      header-tag="h6"
+      header-bg-variant="secondary"
+      header-text-variant="white"
+      class="mb-3"
+    >
+      <p>{{ $t('thirdParty.containsThirdPartySoftware')}}</p>
+      <p>{{ $t('thirdParty.providedAsIs')}}</p>
+      <b-list-group>
+        <b-list-group-item
+          v-for="(lib, index) in libs"
+          v-bind:key="lib.name"
+          @click="$root.$emit('bv::toggle::collapse', 'collapse-lib-' + index)"
+          style="cursor: pointer"
+        >
+          {{ lib.name }}
+          <b-collapse :id="'collapse-lib-' + index" class="mt-2">
+            <p>
+              <a :href="lib.website" target="_new">{{ lib.website }}</a>
+            </p>
+            <p class="mb-3" v-html="lib.copyright"></p>
+            <p class="text-monospace bg-light p-3 rounded" v-html="licenses[lib.license]"></p>
+          </b-collapse>
+        </b-list-group-item>
+      </b-list-group>
+    </b-card>
+  </div>
+</template>
+
+<script>
+import Vue from "vue";
+
+import VueI18n from "vue-i18n";
+Vue.use(VueI18n);
+
+import { LayoutPlugin } from "bootstrap-vue/esm/components/layout";
+Vue.use(LayoutPlugin);
+
+import { ListGroupPlugin } from "bootstrap-vue/esm/components/list-group";
+Vue.use(ListGroupPlugin);
+
+import { CardPlugin } from "bootstrap-vue/esm/components/card";
+Vue.use(CardPlugin);
+
+export default {
+  name: "About",
+  data() {
+    return {
+      libs: [
+        {
+          name: "Bootstrap",
+          copyright:
+            "Copyright (c) 2011-2020 Twitter, Inc.<br>Copyright (c) 2011-2020 The Bootstrap Authors",
+          license: "MIT",
+          website: "https://www.getbootstrap.com/"
+        },
+        {
+          name: "Vue.js",
+          copyright: "Copyright (c) 2020, Evan You",
+          license: "MIT",
+          website: "https://www.vuejs.org/"
+        },
+        {
+          name: "Vuex",
+          copyright: "Copyright (c) 2020, Evan You",
+          license: "MIT",
+          website: "https://vuex.vuejs.org/"
+        },
+        {
+          name: "vue-router",
+          copyright: "Copyright (c) 2020, Evan You",
+          license: "MIT",
+          website: "https://router.vuejs.org/"
+        },
+        {
+          name: "BootstrapVue",
+          copyright: "Copyright (c) 2016-2020, BootstrapVue",
+          license: "MIT",
+          website: "https://www.bootstrap-vue.org/"
+        },
+        {
+          name: "Vuelidate",
+          copyright: "Copyright (c) 2019, Damian Dulisz",
+          license: "MIT",
+          website: "https://vuelidate.js.org/"
+        },
+        {
+          name: "Vue I18n",
+          copyright: "Copyright (c) 2020, kazuya kawaguchi",
+          license: "MIT",
+          website: "https://kazupon.github.io/vue-i18n/"
+        },
+        {
+          name: "axios",
+          copyright: "Copyright (c) 2014-present, Matt Zabriskie",
+          license: "MIT",
+          website: "https://github.com/axios/axios"
+        },
+        {
+          name: "Parcel",
+          copyright: "Copyright (c) 2017-present, Devon Govett",
+          license: "MIT",
+          website: "https://parceljs.org/"
+        },
+        {
+          name: "Espressif IoT Development Framework",
+          copyright:
+            "Copyright 2015-2020, Espressif Systems (Shanghai) PTE LTD",
+          license: "Apache2",
+          website:
+            "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/"
         }
-    </style>
-</head>
-
-<body class="bg-light">
-    <div id="app" class="container">
-        <b-navbar type="dark" variant="primary" class="mb-3 mt-3 rounded">
-            <b-navbar-brand tag="h1" class="font-weight-bold">HB-RF-ETH</b-navbar-brand>
-        </b-navbar>
-
-        <b-card :header="$t('about.title')" header-tag="h6" header-bg-variant="secondary" header-text-variant="white"
-            class="mb-3">
-            <p>Copyright (c) 2020, Alexander Reinert</p>
-            <i18n path="about.license" tag="p">
-                <a place="link" href="https://github.com/alexreinert/HB-RF-ETH"
-                    target="_new">{{ $t('about.firmware') }}</a>
-                <a place="license" href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
-                    target="_new">{{ $t('about.apache2') }}</a>
-            </i18n>
-            <i18n path="about.license" tag="p">
-                <a place="link" href="https://github.com/alexreinert/HB-RF-ETH"
-                    target="_new">{{ $t('about.hardware') }}</a>
-                <a place="license" href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
-                    target="_new">{{ $t('about.ccbyncsa4') }}</a>
-            </i18n>
-        </b-card>
-
-        <b-card :header="$t('thirdParty.title')" header-tag="h6" header-bg-variant="secondary"
-            header-text-variant="white" class="mb-3">
-            <p>{{ $t('thirdParty.containsThirdPartySoftware')}}</p>
-            <p>{{ $t('thirdParty.providedAsIs')}}</p>
-            <b-list-group>
-                <b-list-group-item v-for="(lib, index) in libs"
-                    @click="$root.$emit('bv::toggle::collapse', 'collapse-lib-' + index)">
-                    {{ lib.name }}
-                    <b-collapse :id="'collapse-lib-' + index" class="mt-2">
-                        <p><a :href="lib.website" target="_new">{{ lib.website }}</a></p>
-                        <p class="mb-3" v-html="lib.copyright"></p>
-                        <p class="text-monospace bg-light p-3 rounded" v-html="licenses[lib.license]"></p>
-                    </b-collapse>
-                </b-list-group-item>
-            </b-list-group>
-        </b-card>
-    </div>
-    <script type="text/javascript">
-        Vue.use(BootstrapVue);
-        Vue.use(window.vuelidate.default);
-        Vue.use(VueI18n);
-
-        var app = new Vue({
-            el: '#app',
-            i18n: {
-                locale: navigator.language,
-                fallbackLocale: "en",
-                messages: {
-                    de: {
-                        about: {
-                            title: "Über",
-                            license: "Die {link} ist veröffentlicht unter der {license}.",
-                            firmware: "HB-RF-ETH Software",
-                            hardware: "HB-RF-ETH Platine",
-                            apache2: "Apache 2.0 Lizenz",
-                            ccbyncsa4: "CC BY-NC-SA 4.0 Lizenz"
-                        },
-                        thirdParty: {
-                            title: "Software Dritter",
-                            firmware: "HB-RF-ETH firmware",
-                            hardware: "HB-RF-ETH pcb",
-                            containsThirdPartySoftware: "Diese Software enthält freie Software Dritter, die unter verschiedenen Lizenzbedingungen weitergegeben wird. Eine Auflistung der freien Software, die in dieser Software zum Einsatz kommt, sowie die Lizenzbedingungen unter denen diese weitergegeben wird, finden Sie anbei.",
-                            providedAsIs: "Die Veröffentlichung der freien Software erfolgt, „wie es ist“, OHNE IRGENDEINE GARANTIE."
-                        }
-                    },
-                    en: {
-                        about: {
-                            title: "About",
-                            license: "The {link} is released under the {license}.",
-                            apache2: "Apache License 2.0",
-                            ccbyncsa4: "CC BY-NC-SA 4.0 License"
-                        },
-                        thirdParty: {
-                            title: "Third party software",
-                            containsThirdPartySoftware: "This software contains free third party software products used under various license conditions. A list of free software to be used and the license conditions under which the particular free software will be passed on, can be found enclosed below.",
-                            providedAsIs: "The software is provided “as is” WITHOUT ANY WARRANTY."
-                        }
-                    }
-                }
-            },
-            data: {
-                libs: [
-                    {
-                        name: "Bootstrap",
-                        copyright: "Copyright (c) 2011-2020 Twitter, Inc.<br>Copyright (c) 2011-2020 The Bootstrap Authors",
-                        license: "MIT",
-                        website: "https://www.getbootstrap.com/"
-                    },
-                    {
-                        name: "Vue.js",
-                        copyright: "Copyright (c) 2013-present, Yuxi (Evan) You",
-                        license: "MIT",
-                        website: "https://www.vuejs.org/"
-                    },
-                    {
-                        name: "BootstrapVue",
-                        copyright: "Copyright (c) 2016-2020 - BootstrapVue",
-                        license: "MIT",
-                        website: "https://www.bootstrap-vue.org/"
-                    },
-                    {
-                        name: "Vuelidate",
-                        copyright: "Copyright (c) 2019 Damian Dulisz",
-                        license: "MIT",
-                        website: "https://vuelidate.js.org/"
-                    },
-                    {
-                        name: "Vue I18n",
-                        copyright: "Copyright (c) 2020 kazuya kawaguchi",
-                        license: "MIT",
-                        website: "https://kazupon.github.io/vue-i18n/"
-                    },
-                    {
-                        name: "jQuery",
-                        copyright: "Copyright OpenJS Foundation and other contributors, https://openjsf.org/",
-                        license: "MIT",
-                        website: "https://www.jquery.com/"
-                    },
-                    {
-                        name: "Espressif IoT Development Framework",
-                        copyright: "Copyright 2015-2020 Espressif Systems (Shanghai) PTE LTD",
-                        license: "Apache2",
-                        website: "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/"
-                    },
-
-
-                ],
-                licenses:
-                {
-                    MIT: '<p>The MIT license (MIT)</p> \
+      ],
+      licenses: {
+        MIT:
+          '<p>The MIT license (MIT)</p> \
                         <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p> \
                         <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p> \
                         <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>',
-                    Apache2: '<p style="text-align:center"> \
+        Apache2:
+          '<p style="text-align:center"> \
                         Apache License<br></br>Version 2.0, January 2004<br></br> \
                         http://www.apache.org/licenses/ \
                         </p> \
@@ -339,10 +338,50 @@
                         liability.</p> \
                         \
                         <p>END OF TERMS AND CONDITIONS</p>'
-                }
-            }
-        });
-    </script>
-</body>
+      }
+    };
+  },
+  i18n: {
+    locale: navigator.language,
+    fallbackLocale: "en",
+    messages: {
+      de: {
+        about: {
+          title: "Über",
+          license: "Die {link} ist veröffentlicht unter der {license}.",
+          firmware: "HB-RF-ETH Software",
+          hardware: "HB-RF-ETH Platine",
+          apache2: "Apache 2.0 Lizenz",
+          ccbyncsa4: "CC BY-NC-SA 4.0 Lizenz"
+        },
+        thirdParty: {
+          title: "Software Dritter",
+          firmware: "HB-RF-ETH firmware",
+          hardware: "HB-RF-ETH pcb",
+          containsThirdPartySoftware:
+            "Diese Software enthält freie Software Dritter, die unter verschiedenen Lizenzbedingungen weitergegeben wird. Eine Auflistung der freien Software, die in dieser Software zum Einsatz kommt, sowie die Lizenzbedingungen unter denen diese weitergegeben wird, finden Sie anbei.",
+          providedAsIs:
+            "Die Veröffentlichung der freien Software erfolgt, „wie es ist“, OHNE IRGENDEINE GARANTIE."
+        }
+      },
+      en: {
+        about: {
+          title: "About",
+          license: "The {link} is released under the {license}.",
+          apache2: "Apache License 2.0",
+          ccbyncsa4: "CC BY-NC-SA 4.0 License"
+        },
+        thirdParty: {
+          title: "Third party software",
+          containsThirdPartySoftware:
+            "This software contains free third party software products used under various license conditions. A list of free software to be used and the license conditions under which the particular free software will be passed on, can be found enclosed below.",
+          providedAsIs: "The software is provided “as is” WITHOUT ANY WARRANTY."
+        }
+      }
+    }
+  }
+};
+</script>
 
-</html>
+<style lang="css">
+</style>

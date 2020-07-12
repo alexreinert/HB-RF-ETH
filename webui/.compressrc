@@ -1,0 +1,19 @@
+{
+  "test": ".",
+  "threshold": undefined,
+  concurrency: 2,
+  "gzip": {
+    "enabled": true,
+    "numiterations": 15,
+    "blocksplitting": true,
+    "blocksplittinglast": false,
+    "blocksplittingmax": 15,
+    "zlib": true,
+    "zlibLevel": 9,
+    "zlibMemLevel": 9
+  },
+  "brotli": {
+    "enabled": false
+  },
+  compressOutput: false
+}

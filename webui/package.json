@@ -1,0 +1,32 @@
+{
+  "name": "webui",
+  "version": "1.0.0",
+  "description": "WebUI of HB-RF-ETH firmware",
+  "main": "main.js",
+  "scripts": {
+    "dev": "parcel index.htm",
+    "build": "parcel build index.htm --no-source-maps --no-content-hash"
+  },
+  "keywords": [],
+  "author": "Alexander Reinert",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bootstrap": "^4.5.0",
+    "bootstrap-vue": "^2.15.0",
+    "vue": "^2.6.11",
+    "vue-hot-reload-api": "^2.3.4",
+    "vue-i18n": "^8.18.2",
+    "vue-router": "^3.3.4",
+    "vuelidate": "^0.7.5",
+    "vuex": "^3.5.1"
+  },
+  "devDependencies": {
+    "@vue/component-compiler-utils": "^3.1.2",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-compress": "^2.0.2",
+    "vue-template-compiler": "^2.6.11"
+  }
+}

@@ -61,6 +61,7 @@
     "license-header-manager.excludeExtensions": [
         ".js",
         ".css",
-        ".py"
+        ".py",
+        ".vue"
     ]
 }
