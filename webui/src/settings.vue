@@ -157,8 +157,12 @@ import {
   maxLength,
   numeric,
   ipAddress,
-  sameAs
+  sameAs,
+  helpers
 } from "vuelidate/lib/validators";
+
+const hostname = helpers.regex('hostname', /^[a-zA-Z0-9_-]{1,63}$/)
+const domainname = helpers.regex('domainname', /^([a-zA-Z0-9_-]{1,63}\.)*[a-zA-Z0-9_-]{1,63}$/)
 
 import VueI18n from "vue-i18n";
 Vue.use(VueI18n);
@@ -273,6 +277,7 @@ export default {
     },
     hostname: {
       required,
+      hostname,
       maxLength: maxLength(32)
     },
     localIP: {
@@ -295,7 +300,8 @@ export default {
       ipAddress
     },
     ntpServer: {
-      required: requiredIf("isNtpActived")
+      required: requiredIf("isNtpActived"),
+      domainname
     },
     dcfOffset: {
       required: requiredIf("isDcfActived"),
@@ -322,7 +328,7 @@ export default {
       this.$store
         .dispatch("settings/save", {
           adminPassword: self.adminPassword,
-          hostname: self.hostname + "2",
+          hostname: self.hostname,
           useDHCP: self.useDHCP,
           localIP: self.localIP,
           netmask: self.netmask,

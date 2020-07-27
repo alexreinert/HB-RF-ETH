@@ -429,6 +429,7 @@ WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *
 void WebUI::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.lru_purge_enable = true;
     config.max_uri_handlers = 10;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
