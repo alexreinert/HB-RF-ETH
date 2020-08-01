@@ -32,6 +32,10 @@ Hierbei gilt, dass bei einer debmatic oder piVCCU3 Installation immer nur ein Fu
 * Regelmäßige Prüfung auf Firmwareupdates
 * Werksreset per Taster
 
+### Bekannte Einschränkungen
+* Es findet kein automatischer Reconnect bei Verbindungsabbrüchen statt, nach einem Verbindungsabbruch muss die CCU Software daher neu gestartet werden
+* Die Stromversorgung mittels des Funkmoduls RPI-RF-MOD darf nur erfolgen, wenn keine andere Stromversorgung (USB oder PoE) angeschlossen ist
+
 ### Werksreset
 Die Firmware kann per Taster auf Werkseinstellungen zurückgesetzt werden:
 1. Platine vom Strom trennen
@@ -54,10 +58,10 @@ Siehe Hilfe zum RPI-RF-MOD
 * Dauerhaftes Leuchten der grünen Power LED: Sytem ist gestartet
 
 ### Firmware Updates
-Firmware Updates sind fertig kompiliert und Releases zu finden und können per Webinterface eingespielt werden.
+Firmware Updates sind fertig kompiliert und Releases zu finden und können per Webinterface eingespielt werden. Zum Übernehmen der Firmware muss die Platine neu gestartet werden (mittel Power-On Reset).
 
 ### Einbindung in piVCCU3 und debmatic
-/TBD/
+Die Unterstützung für die Platine HB-RF-ETH ist in piVCCU3 ab Version 3.51.6-41 und in debmatic ab Version 3.51.6-46 eingebaut. Die Installation der Platine erfolgt über das Paket "hb-rf-eth". Weiteres Details findet man in der Installationsanleitung von piVCCU3 bzw. debmatic.
 
 ### Roadmap
 Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als zufällig anzusehen und es ist nicht garantiert, dass alle Punkte auch umgesetzt werden.
