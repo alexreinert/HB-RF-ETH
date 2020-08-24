@@ -19,37 +19,28 @@
 #include "streamparser.h"
 #include <stdint.h>
 
-unsigned char _buffer[2048];
-uint16_t _buffer_pos;
-uint16_t _frame_pos;
-uint16_t _frame_length;
-state_t _state;
-bool _is_escaped;
-bool _decode_escaped;
-std::function<void(unsigned char *buffer, uint16_t len)> _processor;
-
-StreamParser::StreamParser(bool decode_escaped, std::function<void(unsigned char *buffer, uint16_t len)> processor) : _buffer_pos(0), _state(NO_DATA), _is_escaped(false), _decode_escaped(decode_escaped), _processor(processor)
+StreamParser::StreamParser(bool decodeEscaped, std::function<void(unsigned char *buffer, uint16_t len)> processor) : _bufferPos(0), _state(NO_DATA), _isEscaped(false), _decodeEscaped(decodeEscaped), _processor(processor)
 {
 }
 
-void StreamParser::Append(unsigned char chr)
+void StreamParser::append(unsigned char chr)
 {
     switch (chr)
     {
     case 0xfd:
-        _buffer_pos = 0;
-        _is_escaped = false;
+        _bufferPos = 0;
+        _isEscaped = false;
         _state = RECEIVE_LENGTH_HIGH_BYTE;
         break;
 
     case 0xfc:
-        _is_escaped = true;
-        if (_decode_escaped)
+        _isEscaped = true;
+        if (_decodeEscaped)
             return;
         break;
 
     default:
-        if (_is_escaped && _decode_escaped)
+        if (_isEscaped && _decodeEscaped)
             chr |= 0x80;
 
         switch (_state)
@@ -59,49 +50,58 @@ void StreamParser::Append(unsigned char chr)
             return; // Do nothing until the first frame prefix occurs
 
         case RECEIVE_LENGTH_HIGH_BYTE:
-            _frame_length = (_is_escaped ? chr | 0x80 : chr) << 8;
+            _frameLength = (_isEscaped ? chr | 0x80 : chr) << 8;
             _state = RECEIVE_LENGTH_LOW_BYTE;
             break;
 
         case RECEIVE_LENGTH_LOW_BYTE:
-            _frame_length |= (_is_escaped ? chr | 0x80 : chr);
-            _frame_length += 2; // handle crc as frame data
-            _frame_pos = 0;
+            _frameLength |= (_isEscaped ? chr | 0x80 : chr);
+            _frameLength += 2; // handle crc as frame data
+            _framePos = 0;
             _state = RECEIVE_FRAME_DATA;
             break;
 
         case RECEIVE_FRAME_DATA:
-            _frame_pos++;
-            _state = (_frame_pos == _frame_length) ? FRAME_COMPLETE : RECEIVE_FRAME_DATA;
+            _framePos++;
+            _state = (_framePos == _frameLength) ? FRAME_COMPLETE : RECEIVE_FRAME_DATA;
             break;
         }
-        _is_escaped = false;
+        _isEscaped = false;
     }
 
-    _buffer[_buffer_pos++] = chr;
+    _buffer[_bufferPos++] = chr;
 
-    if (_buffer_pos == sizeof(_buffer))
+    if (_bufferPos == sizeof(_buffer))
         _state = FRAME_COMPLETE;
 
     if (_state == FRAME_COMPLETE)
     {
-        _processor(_buffer, _buffer_pos);
+        _processor(_buffer, _bufferPos);
         _state = NO_DATA;
     }
 }
 
-void StreamParser::Append(unsigned char *buffer, uint16_t len)
+void StreamParser::append(unsigned char *buffer, uint16_t len)
 {
     int i;
     for (i = 0; i < len; i++)
     {
-        Append(buffer[i]);
+        append(buffer[i]);
     }
 }
 
-void StreamParser::Flush()
+void StreamParser::flush()
 {
     _state = NO_DATA;
-    _buffer_pos = 0;
-    _is_escaped = false;
+    _bufferPos = 0;
+    _isEscaped = false;
+}
+
+bool StreamParser::getDecodeEscaped()
+{
+    return _decodeEscaped;
+}
+void StreamParser::setDecodeEscaped(bool decodeEscaped)
+{
+    _decodeEscaped = decodeEscaped;
 }

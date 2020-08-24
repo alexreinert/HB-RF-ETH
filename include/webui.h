@@ -30,7 +30,7 @@ private:
     httpd_handle_t _httpd_handle;
 
 public:
-    WebUI(Settings* settings, LED* statusLED, SysInfo *sysInfo, UpdateCheck* updateCheck, RawUartUdpListener* rawUartUdpListener);
+    WebUI(Settings* settings, LED* statusLED, SysInfo *sysInfo, UpdateCheck* updateCheck, RawUartUdpListener* rawUartUdpListener, RadioModuleConnector* radioModuleConnector);
     void start();
     void stop();
 };

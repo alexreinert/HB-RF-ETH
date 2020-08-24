@@ -23,29 +23,30 @@
 #include "lwip/udp.h"
 #include "lwip/priv/tcpip_priv.h"
 #include <atomic>
-#define _Atomic(X) std::atomic< X >
+#define _Atomic(X) std::atomic<X>
 #include "radiomoduleconnector.h"
 
-class RawUartUdpListener : FrameHandler {
+class RawUartUdpListener : FrameHandler
+{
 private:
-    RadioModuleConnector* _radioModuleConnector;
+    RadioModuleConnector *_radioModuleConnector;
     std::atomic<uint> _remoteAddress;
     std::atomic<ushort> _remotePort;
     std::atomic<bool> _connectionStarted;
     std::atomic<int> _counter;
     std::atomic<int> _endpointConnectionIdentifier;
     uint64_t _lastReceivedKeepAlive;
-    udp_pcb* _pcb;
+    udp_pcb *_pcb;
     QueueHandle_t _udp_queue;
     TaskHandle_t _tHandle = NULL;
 
     void handlePacket(pbuf *pb, ip4_addr_t addr, uint16_t port);
-    void sendMessage(unsigned char command, unsigned char* buffer, size_t len);
+    void sendMessage(unsigned char command, unsigned char *buffer, size_t len);
 
 public:
-    RawUartUdpListener(RadioModuleConnector* radioModuleConnector);
+    RawUartUdpListener(RadioModuleConnector *radioModuleConnector);
 
-    void handleFrame(unsigned char* buffer, uint16_t len);
+    void handleFrame(unsigned char *buffer, uint16_t len);
     void handleEvent();
 
     ip4_addr_t getConnectedRemoteAddress();

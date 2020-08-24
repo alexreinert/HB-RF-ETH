@@ -70,7 +70,11 @@ const moduleSysInfo = {
     latestVersion: "",
     rawUartRemoteAddress: "",
     memoryUsage: 0.0,
-    cpuUsage: 0.0
+    cpuUsage: 0.0,
+    radioModuleType: "",
+    radioModuleSerial: "",
+    radioModuleRadioMAC: "",
+    radioModuleSGTIN: ""
   }),
   mutations: {
     sysInfo(state, newState) {
@@ -80,6 +84,10 @@ const moduleSysInfo = {
       state.rawUartRemoteAddress = newState.rawUartRemoteAddress;
       state.memoryUsage = newState.memoryUsage;
       state.cpuUsage = newState.cpuUsage;
+      state.radioModuleType = newState.radioModuleType;
+      state.radioModuleSerial = newState.radioModuleSerial;
+      state.radioModuleRadioMAC = newState.radioModuleRadioMAC;
+      state.radioModuleSGTIN = newState.radioModuleSGTIN;
     },
   },
   actions: {

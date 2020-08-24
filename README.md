@@ -29,12 +29,13 @@ Hierbei gilt, dass bei einer debmatic oder piVCCU3 Installation immer nur ein Fu
 * WebUI zur Konfiguration
   * Intialpasswort: admin
 * Firmware Update per Webinterface
+* Erkennung des Funkmoduls und Ausgabe von Typ, Seriennummer, Funkadresse und SGTIN in der WebUI
 * Regelmäßige Prüfung auf Firmwareupdates
 * Werksreset per Taster
 
 ### Bekannte Einschränkungen
-* Es findet kein automatischer Reconnect bei Verbindungsabbrüchen statt, nach einem Verbindungsabbruch muss die CCU Software daher neu gestartet werden
-* Die Stromversorgung mittels des Funkmoduls RPI-RF-MOD darf nur erfolgen, wenn keine andere Stromversorgung (USB oder PoE) angeschlossen ist
+* Nach einem Neustart der Platine (z.B. bei Stromausfall) findet kein automatischer Reconnect statt, in diesem Fall muss die CCU Software daher neu gestartet werden.
+* Die Stromversorgung mittels des Funkmoduls RPI-RF-MOD darf nur erfolgen, wenn keine andere Stromversorgung (USB oder PoE) angeschlossen ist.
 
 ### Werksreset
 Die Firmware kann per Taster auf Werkseinstellungen zurückgesetzt werden:
@@ -67,7 +68,6 @@ Die Unterstützung für die Platine HB-RF-ETH ist in piVCCU3 ab Version 3.51.6-4
 Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als zufällig anzusehen und es ist nicht garantiert, dass alle Punkte auch umgesetzt werden.
 
 * Transportverschlüsselung raw-uart
-* Detailerkennung des aufgesteckten Funkmoduls
 * LED Fading
 * SNMP
 * CheckMK Agent

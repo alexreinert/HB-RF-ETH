@@ -29,6 +29,18 @@
       <b-form-group :label="$t('rawUartRemoteAddress')" label-cols-sm="4">
         <b-form-input type="text" v-model="this.$store.state.sysInfo.rawUartRemoteAddress" disabled></b-form-input>
       </b-form-group>
+      <b-form-group :label="$t('radioModuleType')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleType" disabled></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('radioModuleSerial')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleSerial" disabled></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('radioModuleRadioMAC')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleRadioMAC" disabled></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('radioModuleSGTIN')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleSGTIN" disabled></b-form-input>
+      </b-form-group>
     </b-form>
   </b-card>
 </template>
@@ -80,14 +92,22 @@ export default {
         serial: "Seriennummer",
         cpuUsage: "CPU Auslastung",
         memoryUsage: "Speicherauslastung",
-        rawUartRemoteAddress: "Verbunden mit"
+        rawUartRemoteAddress: "Verbunden mit",
+        radioModuleType: "Funkmodultyp",
+        radioModuleSerial: "Seriennummer",
+        radioModuleRadioMAC: "Funkadresse",
+        radioModuleSGTIN: "SGTIN"
       },
       en: {
         title: "System information",
         serial: "Serial number",
         cpuUsage: "CPU usage",
         memoryUsage: "Memory usage",
-        rawUartRemoteAddress: "Connected with"
+        rawUartRemoteAddress: "Connected with",
+        radioModuleType: "Radio module type",
+        radioModuleSerial: "Serial number",
+        radioModuleRadioMAC: "Radio address",
+        radioModuleSGTIN: "SGTIN"
       }
     }
   }

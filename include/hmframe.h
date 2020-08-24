@@ -38,22 +38,40 @@ public:
 
 typedef enum
 {
-    HM_DST_OS = 0,
-    HM_DST_APP = 0x01,
-    HM_DST_HMIP = 0x02,
+    HM_DST_HMSYSTEM = 0x00,
+    HM_DST_TRX = 0x01,
     HM_DST_LLMAC = 0x03,
-    HM_DST_DUAL = 0xfe,
-    HM_DST_DUAL_ERR = 0xff,
+    HM_DST_COMMON = 0xfe,
 } hm_dst_t;
 
 typedef enum
 {
-    HM_CMD_OS_GET_APP = 0,
-    HM_CMD_OS_CHANGE_APP = 3,
-} hm_cmd_os_t;
+    HM_CMD_HMSYSTEM_IDENTIFY = 0x00,
+    HM_CMD_HMSYSTEM_GET_VERSION = 0x02,
+    HM_CMD_HMSYSTEM_START_APP = 0x03,
+    HM_CMD_HMSYSTEM_ACK = 0x04,
+    HM_CMD_HMSYSTEM_GET_SERIAL = 0x0b,
+} hm_cmd_hmsystem_t;
 
 typedef enum
 {
-    HM_CMD_DUAL_GET_APP = 1,
-    HM_CMD_DUAL_CHANGE_APP = 2,
-} hm_cmd_dual_t;
+    HM_CMD_TRX_GET_VERSION = 0x02,
+    HM_CMD_TRX_ACK = 0x04,
+    HM_CMD_TRX_GET_MCU_TYPE = 0x09,
+    HM_CMD_TRX_GET_DEFAULT_RF_ADDR = 0x10,
+} hm_cmd_trx_t;
+
+typedef enum
+{
+    HM_CMD_LLMAC_ACK = 0x01,
+    HM_CMD_LLMAC_GET_SERIAL = 0x07,
+    HM_CMD_LLMAC_GET_DEFAULT_RF_ADDR = 0x08,
+} hm_cmd_llmac_t;
+
+typedef enum
+{
+    HM_CMD_COMMON_IDENTIFY = 0x01,
+    HM_CMD_COMMON_START_APP = 0x03,
+    HM_CMD_COMMON_GET_SGTIN = 0x04,
+    HM_CMD_COMMON_ACK = 0x05,
+} hm_cmd_common_t;

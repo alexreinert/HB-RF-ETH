@@ -56,6 +56,7 @@ static LED *_statusLED;
 static SysInfo *_sysInfo;
 static UpdateCheck *_updateCheck;
 static RawUartUdpListener *_rawUartUdpListener;
+static RadioModuleConnector *_radioModuleConnector;
 static char _token[46];
 
 const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
@@ -149,6 +150,26 @@ esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
 
     cJSON_AddNumberToObject(sysinfo, "memoryUsage", _sysInfo->getMemoryUsage());
     cJSON_AddNumberToObject(sysinfo, "cpuUsage", _sysInfo->getCpuUsage());
+
+    cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
+
+    switch (_radioModuleConnector->getRadioModuleType())
+    {
+    case RADIO_MODULE_HM_MOD_RPI_PCB:
+        cJSON_AddStringToObject(sysinfo, "radioModuleType", "HM-MOD-RPI-PCB");
+        break;
+    case RADIO_MODULE_RPI_RF_MOD:
+        cJSON_AddStringToObject(sysinfo, "radioModuleType", "RPI-RF-MOD");
+        break;
+    default:
+        cJSON_AddStringToObject(sysinfo, "radioModuleType", "-");
+        break;
+    }   
+    cJSON_AddStringToObject(sysinfo, "radioModuleSerial", _radioModuleConnector->getSerial());
+    char radioMAC[9];
+    sprintf(radioMAC, "0x%06x", _radioModuleConnector->getRadioMAC());
+    cJSON_AddStringToObject(sysinfo, "radioModuleRadioMAC", radioMAC);
+    cJSON_AddStringToObject(sysinfo, "radioModuleSGTIN", _radioModuleConnector->getSGTIN());
 
     const char *json = cJSON_Print(root);
     httpd_resp_sendstr(req, json);
@@ -398,13 +419,14 @@ httpd_uri_t post_ota_update_handler = {
     .handler = post_ota_update_handler_func,
     .user_ctx = NULL};
 
-WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener)
+WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector)
 {
     _settings = settings;
     _statusLED = statusLED;
     _sysInfo = sysInfo;
     _updateCheck = updateCheck;
     _rawUartUdpListener = rawUartUdpListener;
+    _radioModuleConnector = radioModuleConnector;
 
     char tokenBase[21];
     *((uint32_t *)tokenBase) = esp_random();

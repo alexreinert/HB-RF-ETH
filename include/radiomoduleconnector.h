@@ -25,7 +25,14 @@
 #include "led.h"
 #include "streamparser.h"
 #include <atomic>
-#define _Atomic(X) std::atomic< X >
+#define _Atomic(X) std::atomic<X>
+
+typedef enum
+{
+    RADIO_MODULE_NONE = 0,
+    RADIO_MODULE_HM_MOD_RPI_PCB = 3,
+    RADIO_MODULE_RPI_RF_MOD = 4,
+} radio_module_type_t;
 
 class FrameHandler
 {
@@ -33,18 +40,33 @@ public:
     virtual void handleFrame(unsigned char *buffer, uint16_t len) = 0;
 };
 
-class RadioModuleConnector
+class RadioModuleConnector : private FrameHandler
 {
 private:
     LED *_redLED;
     LED *_greenLED;
     LED *_blueLED;
     StreamParser *_streamParser;
-    std::atomic<FrameHandler*> _frameHandler = ATOMIC_VAR_INIT(0);
+    std::atomic<FrameHandler *> _frameHandler = ATOMIC_VAR_INIT(0);
     QueueHandle_t _uart_queue;
     TaskHandle_t _tHandle = NULL;
 
+    void sendFrame(uint8_t counter, uint8_t destination, uint8_t command, unsigned char *data, uint data_len);
     void _handleFrame(unsigned char *buffer, uint16_t len);
+
+    void detectRadioModule();
+    void handleFrame(unsigned char *buffer, uint16_t len);
+
+    char _serial[11] = {0};
+    uint32_t _radioMAC;
+    char _sgtin[25] = {0};
+    uint8_t _firmwareVersion[3];
+    radio_module_type_t _radioModuleType;
+
+    int _detectState;
+    int _detectRetryCount;
+    int _detectMsgCounter;
+    SemaphoreHandle_t _detectWaitFrameDataSemaphore;
 
 public:
     RadioModuleConnector(LED *redLED, LED *greenLed, LED *blueLed);
@@ -59,6 +81,12 @@ public:
     void resetModule();
 
     void sendFrame(unsigned char *buffer, uint16_t len);
+
+    const char *getSerial();
+    uint32_t getRadioMAC();
+    const char *getSGTIN();
+    const uint8_t *getFirmwareVersion();
+    radio_module_type_t getRadioModuleType();
 
     void _serialQueueHandler();
 };

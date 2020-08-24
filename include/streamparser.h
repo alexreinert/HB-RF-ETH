@@ -34,18 +34,21 @@ class StreamParser
 {
 private:
     unsigned char _buffer[2048];
-    uint16_t _buffer_pos;
-    uint16_t _frame_pos;
-    uint16_t _frame_length;
+    uint16_t _bufferPos;
+    uint16_t _framePos;
+    uint16_t _frameLength;
     state_t _state;
-    bool _is_escaped;
-    bool _decode_escaped;
+    bool _isEscaped;
+    bool _decodeEscaped;
     std::function<void(unsigned char *buffer, uint16_t len)> _processor;
 
 public:
-    StreamParser(bool decode_escaped, std::function<void(unsigned char *buffer, uint16_t len)> processor);
+    StreamParser(bool decodeEscaped, std::function<void(unsigned char *buffer, uint16_t len)> processor);
 
-    void Append(unsigned char chr);
-    void Append(unsigned char *buffer, uint16_t len);
-    void Flush();
+    void append(unsigned char chr);
+    void append(unsigned char *buffer, uint16_t len);
+    void flush();
+
+    bool getDecodeEscaped();
+    void setDecodeEscaped(bool decodeEscaped);
 };

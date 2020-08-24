@@ -78,6 +78,34 @@ void app_main()
     Ethernet ethernet(&settings);
     ethernet.start();
 
+    radio_module_type_t radioModuleType = radioModuleConnector.getRadioModuleType();
+    if (radioModuleType != RADIO_MODULE_NONE)
+    {
+        switch (radioModuleType)
+        {
+        case RADIO_MODULE_HM_MOD_RPI_PCB:
+            ESP_LOGI(TAG, "Detected HM-MOD-RPI-PCB:");
+            break;
+        case RADIO_MODULE_RPI_RF_MOD:
+            ESP_LOGI(TAG, "Detected RPI-RF-MOD:");
+            break;
+        default:
+            ESP_LOGI(TAG, "Detected unknown radio module:");
+            break;
+        }
+
+        ESP_LOGI(TAG, "  Serial: %s", radioModuleConnector.getSerial());
+        ESP_LOGI(TAG, "  SGTIN: %s", radioModuleConnector.getSGTIN());
+        ESP_LOGI(TAG, "  Radio MAC: 0x%06x", radioModuleConnector.getRadioMAC());
+
+        const uint8_t *firmwareVersion = radioModuleConnector.getFirmwareVersion();
+        ESP_LOGI(TAG, "  Firmware Version: %d.%d.%d", *firmwareVersion, *(firmwareVersion + 1), *(firmwareVersion + 2));
+    }
+    else
+    {
+        ESP_LOGW(TAG, "Radio module could not be detected.");
+    }
+
     setenv("TZ", "UTC0", 1);
     tzset();
 
@@ -116,7 +144,7 @@ void app_main()
     UpdateCheck updateCheck(&sysInfo, &statusLED);
     updateCheck.start();
 
-    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &rawUartUdpLister);
+    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &rawUartUdpLister, &radioModuleConnector);
     webUI.start();
 
     powerLED.setState(LED_STATE_ON);
