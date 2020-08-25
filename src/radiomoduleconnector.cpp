@@ -23,6 +23,9 @@
 #include "hmframe.h"
 #include "driver/gpio.h"
 #include "pins.h"
+#include "esp_log.h"
+
+static const char *TAG = "RadioModuleConnector";
 
 void serialQueueHandlerTask(void *parameter)
 {
@@ -163,6 +166,9 @@ void RadioModuleConnector::sendFrame(uint8_t counter, uint8_t destination, uint8
     frame.data_len = data_len;
     uint16_t len = frame.encode(sendBuffer, sizeof(sendBuffer), true);
 
+    ESP_LOGD(TAG, "Sending HM frame:");
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, sendBuffer, len, ESP_LOG_DEBUG);
+
     sendFrame(sendBuffer, len);
 }
 
@@ -217,6 +223,10 @@ void RadioModuleConnector::detectRadioModule()
             sendFrame(_detectMsgCounter++, HM_DST_TRX, HM_CMD_TRX_GET_DEFAULT_RF_ADDR, NULL, 0);
             break;
 
+        case 32:
+            sendFrame(_detectMsgCounter++, HM_DST_HMIP, HM_CMD_HMIP_GET_DEFAULT_RF_ADDR, NULL, 0);
+            break;
+
         case 40:
             sendFrame(_detectMsgCounter++, HM_DST_LLMAC, HM_CMD_LLMAC_GET_SERIAL, NULL, 0);
             break;
@@ -244,6 +254,9 @@ void RadioModuleConnector::detectRadioModule()
 
 void RadioModuleConnector::handleFrame(unsigned char *buffer, uint16_t len)
 {
+    ESP_LOGD(TAG, "Received HM frame:");
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, len, ESP_LOG_DEBUG);
+
     HMFrame frame;
     if (!HMFrame::TryParse(buffer, len, &frame))
     {
@@ -316,7 +329,7 @@ void RadioModuleConnector::handleFrame(unsigned char *buffer, uint16_t len)
         if (frame.destination == HM_DST_LLMAC && frame.command == HM_CMD_LLMAC_ACK && frame.data_len == 4 && frame.data[0] == 1)
         {
             _radioMAC = (frame.data[1] << 16) | (frame.data[2] << 8) | frame.data[3];
-            _detectState = 40;
+            _detectState = ((_radioMAC & 0xffff) == 0xffff) ? 32 : 40;
             xSemaphoreGive(_detectWaitFrameDataSemaphore);
         }
         break;
@@ -326,6 +339,15 @@ void RadioModuleConnector::handleFrame(unsigned char *buffer, uint16_t len)
         {
             _radioMAC = (frame.data[3] << 16) | (frame.data[4] << 8) | frame.data[5];
             _detectState = 41;
+            xSemaphoreGive(_detectWaitFrameDataSemaphore);
+        }
+        break;
+
+    case 32:
+        if (frame.destination == HM_DST_HMIP && frame.command == HM_CMD_HMIP_ACK && frame.data_len == 4 && frame.data[0] == 1)
+        {
+            _radioMAC = (frame.data[1] << 16) | (frame.data[2] << 8) | frame.data[3];
+            _detectState = 40;
             xSemaphoreGive(_detectWaitFrameDataSemaphore);
         }
         break;

@@ -40,6 +40,7 @@ typedef enum
 {
     HM_DST_HMSYSTEM = 0x00,
     HM_DST_TRX = 0x01,
+    HM_DST_HMIP = 0x02,
     HM_DST_LLMAC = 0x03,
     HM_DST_COMMON = 0xfe,
 } hm_dst_t;
@@ -60,6 +61,12 @@ typedef enum
     HM_CMD_TRX_GET_MCU_TYPE = 0x09,
     HM_CMD_TRX_GET_DEFAULT_RF_ADDR = 0x10,
 } hm_cmd_trx_t;
+
+typedef enum
+{
+    HM_CMD_HMIP_GET_DEFAULT_RF_ADDR = 0x01,
+    HM_CMD_HMIP_ACK = 0x06,
+} hm_cmd_hmip_t;
 
 typedef enum
 {
