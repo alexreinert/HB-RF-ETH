@@ -49,8 +49,7 @@ RadioModuleConnector::RadioModuleConnector(LED *redLED, LED *greenLed, LED *blue
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 0,
-        .use_ref_tick = false
-        };
+        .use_ref_tick = false};
     uart_param_config(UART_NUM_1, &uart_config);
     uart_set_pin(UART_NUM_1, HM_TX_PIN, HM_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
@@ -177,7 +176,9 @@ void RadioModuleConnector::detectRadioModule()
     _detectState = 0;
     _detectRetryCount = 0;
     _detectMsgCounter = 0;
+
     _radioModuleType = RADIO_MODULE_NONE;
+
     _detectWaitFrameDataSemaphore = xSemaphoreCreateBinary();
     HMFrame frame;
 
@@ -197,7 +198,7 @@ void RadioModuleConnector::detectRadioModule()
         {
         case 0:
             sendFrame(_detectMsgCounter++, HM_DST_COMMON, HM_CMD_COMMON_IDENTIFY, NULL, 0);
-            if (xSemaphoreTake(_detectWaitFrameDataSemaphore, 1000 / portTICK_PERIOD_MS) != pdTRUE)
+            if (xSemaphoreTake(_detectWaitFrameDataSemaphore, 3000 / portTICK_PERIOD_MS) != pdTRUE)
             {
                 sendFrame(_detectMsgCounter++, HM_DST_HMSYSTEM, HM_CMD_HMSYSTEM_IDENTIFY, NULL, 0);
             }
@@ -329,7 +330,7 @@ void RadioModuleConnector::handleFrame(unsigned char *buffer, uint16_t len)
         if (frame.destination == HM_DST_LLMAC && frame.command == HM_CMD_LLMAC_ACK && frame.data_len == 4 && frame.data[0] == 1)
         {
             _radioMAC = (frame.data[1] << 16) | (frame.data[2] << 8) | frame.data[3];
-            _detectState = ((_radioMAC & 0xffff) == 0xffff) ? 32 : 40;
+            _detectState = (_radioMAC == 0 || (_radioMAC & 0xffff) == 0xffff) ? 32 : 40;
             xSemaphoreGive(_detectWaitFrameDataSemaphore);
         }
         break;

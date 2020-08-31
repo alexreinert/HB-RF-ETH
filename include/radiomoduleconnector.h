@@ -58,10 +58,10 @@ private:
     void handleFrame(unsigned char *buffer, uint16_t len);
 
     char _serial[11] = {0};
-    uint32_t _radioMAC;
+    uint32_t _radioMAC = 0;
     char _sgtin[25] = {0};
-    uint8_t _firmwareVersion[3];
-    radio_module_type_t _radioModuleType;
+    uint8_t _firmwareVersion[3] = {0};
+    radio_module_type_t _radioModuleType = RADIO_MODULE_NONE;
 
     int _detectState;
     int _detectRetryCount;
