@@ -73,7 +73,8 @@ const moduleSysInfo = {
     cpuUsage: 0.0,
     radioModuleType: "",
     radioModuleSerial: "",
-    radioModuleRadioMAC: "",
+    radioModuleBidCosRadioMAC: "",
+    radioModuleHmIPRadioMAC: "",
     radioModuleSGTIN: ""
   }),
   mutations: {
@@ -86,7 +87,8 @@ const moduleSysInfo = {
       state.cpuUsage = newState.cpuUsage;
       state.radioModuleType = newState.radioModuleType;
       state.radioModuleSerial = newState.radioModuleSerial;
-      state.radioModuleRadioMAC = newState.radioModuleRadioMAC;
+      state.radioModuleBidCosRadioMAC = newState.radioModuleBidCosRadioMAC;
+      state.radioModuleHmIPRadioMAC = newState.radioModuleHmIPRadioMAC;
       state.radioModuleSGTIN = newState.radioModuleSGTIN;
     },
   },

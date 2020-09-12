@@ -35,8 +35,11 @@
       <b-form-group :label="$t('radioModuleSerial')" label-cols-sm="4">
         <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleSerial" disabled></b-form-input>
       </b-form-group>
-      <b-form-group :label="$t('radioModuleRadioMAC')" label-cols-sm="4">
-        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleRadioMAC" disabled></b-form-input>
+      <b-form-group :label="$t('radioModuleBidCosRadioMAC')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleBidCosRadioMAC" disabled></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('radioModuleHmIPRadioMAC')" label-cols-sm="4">
+        <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleHmIPRadioMAC" disabled></b-form-input>
       </b-form-group>
       <b-form-group :label="$t('radioModuleSGTIN')" label-cols-sm="4">
         <b-form-input type="text" v-model="this.$store.state.sysInfo.radioModuleSGTIN" disabled></b-form-input>
@@ -95,7 +98,8 @@ export default {
         rawUartRemoteAddress: "Verbunden mit",
         radioModuleType: "Funkmodultyp",
         radioModuleSerial: "Seriennummer",
-        radioModuleRadioMAC: "Funkadresse",
+        radioModuleBidCosRadioMAC: "Funkadresse (BidCos)",
+        radioModuleHmIPRadioMAC: "Funkadresse (HmIP)",
         radioModuleSGTIN: "SGTIN"
       },
       en: {
@@ -106,7 +110,8 @@ export default {
         rawUartRemoteAddress: "Connected with",
         radioModuleType: "Radio module type",
         radioModuleSerial: "Serial number",
-        radioModuleRadioMAC: "Radio address",
+        radioModuleBidCosRadioMAC: "Radio address (BidCos)",
+        radioModuleHmIPRadioMAC: "Radio address (HmIP)",
         radioModuleSGTIN: "SGTIN"
       }
     }

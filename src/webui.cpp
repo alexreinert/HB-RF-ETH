@@ -57,6 +57,7 @@ static SysInfo *_sysInfo;
 static UpdateCheck *_updateCheck;
 static RawUartUdpListener *_rawUartUdpListener;
 static RadioModuleConnector *_radioModuleConnector;
+static RadioModuleDetector *_radioModuleDetector;
 static char _token[46];
 
 const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
@@ -75,6 +76,17 @@ const char *ip2str(ip4_addr_t addr)
         return "";
     }
     return ip4addr_ntoa(&addr);
+}
+
+void formatRadioMAC(uint32_t radioMAC, char *buf)
+{
+    if (radioMAC == 0)
+    {
+        sprintf(buf, "n/a");
+    }
+    else{
+        sprintf(buf, "0x%06X", radioMAC);
+    }
 }
 
 esp_err_t validate_auth(httpd_req_t *req)
@@ -153,7 +165,7 @@ esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
 
     cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
 
-    switch (_radioModuleConnector->getRadioModuleType())
+    switch (_radioModuleDetector->getRadioModuleType())
     {
     case RADIO_MODULE_HM_MOD_RPI_PCB:
         cJSON_AddStringToObject(sysinfo, "radioModuleType", "HM-MOD-RPI-PCB");
@@ -165,11 +177,13 @@ esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
         cJSON_AddStringToObject(sysinfo, "radioModuleType", "-");
         break;
     }   
-    cJSON_AddStringToObject(sysinfo, "radioModuleSerial", _radioModuleConnector->getSerial());
+    cJSON_AddStringToObject(sysinfo, "radioModuleSerial", _radioModuleDetector->getSerial());
     char radioMAC[9];
-    sprintf(radioMAC, "0x%06x", _radioModuleConnector->getRadioMAC());
-    cJSON_AddStringToObject(sysinfo, "radioModuleRadioMAC", radioMAC);
-    cJSON_AddStringToObject(sysinfo, "radioModuleSGTIN", _radioModuleConnector->getSGTIN());
+    formatRadioMAC(_radioModuleDetector->getBidCosRadioMAC(), radioMAC);
+    cJSON_AddStringToObject(sysinfo, "radioModuleBidCosRadioMAC", radioMAC);
+    formatRadioMAC(_radioModuleDetector->getHmIPRadioMAC(), radioMAC);
+    cJSON_AddStringToObject(sysinfo, "radioModuleHmIPRadioMAC", radioMAC);
+    cJSON_AddStringToObject(sysinfo, "radioModuleSGTIN", _radioModuleDetector->getSGTIN());
 
     const char *json = cJSON_Print(root);
     httpd_resp_sendstr(req, json);
@@ -419,7 +433,7 @@ httpd_uri_t post_ota_update_handler = {
     .handler = post_ota_update_handler_func,
     .user_ctx = NULL};
 
-WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector)
+WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector, RadioModuleDetector *radioModuleDetector)
 {
     _settings = settings;
     _statusLED = statusLED;
@@ -427,6 +441,7 @@ WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *
     _updateCheck = updateCheck;
     _rawUartUdpListener = rawUartUdpListener;
     _radioModuleConnector = radioModuleConnector;
+    _radioModuleDetector = radioModuleDetector;
 
     char tokenBase[21];
     *((uint32_t *)tokenBase) = esp_random();

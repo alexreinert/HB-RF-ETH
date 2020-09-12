@@ -27,20 +27,13 @@
 #include <atomic>
 #define _Atomic(X) std::atomic<X>
 
-typedef enum
-{
-    RADIO_MODULE_NONE = 0,
-    RADIO_MODULE_HM_MOD_RPI_PCB = 3,
-    RADIO_MODULE_RPI_RF_MOD = 4,
-} radio_module_type_t;
-
 class FrameHandler
 {
 public:
     virtual void handleFrame(unsigned char *buffer, uint16_t len) = 0;
 };
 
-class RadioModuleConnector : private FrameHandler
+class RadioModuleConnector
 {
 private:
     LED *_redLED;
@@ -51,22 +44,7 @@ private:
     QueueHandle_t _uart_queue;
     TaskHandle_t _tHandle = NULL;
 
-    void sendFrame(uint8_t counter, uint8_t destination, uint8_t command, unsigned char *data, uint data_len);
     void _handleFrame(unsigned char *buffer, uint16_t len);
-
-    void detectRadioModule();
-    void handleFrame(unsigned char *buffer, uint16_t len);
-
-    char _serial[11] = {0};
-    uint32_t _radioMAC = 0;
-    char _sgtin[25] = {0};
-    uint8_t _firmwareVersion[3] = {0};
-    radio_module_type_t _radioModuleType = RADIO_MODULE_NONE;
-
-    int _detectState;
-    int _detectRetryCount;
-    int _detectMsgCounter;
-    SemaphoreHandle_t _detectWaitFrameDataSemaphore;
 
 public:
     RadioModuleConnector(LED *redLED, LED *greenLed, LED *blueLed);
@@ -76,17 +54,11 @@ public:
 
     void setLED(bool red, bool green, bool blue);
 
-    void setFrameHandler(FrameHandler *handler);
+    void setFrameHandler(FrameHandler *handler, bool decodeEscaped);
 
     void resetModule();
 
     void sendFrame(unsigned char *buffer, uint16_t len);
-
-    const char *getSerial();
-    uint32_t getRadioMAC();
-    const char *getSGTIN();
-    const uint8_t *getFirmwareVersion();
-    radio_module_type_t getRadioModuleType();
 
     void _serialQueueHandler();
 };

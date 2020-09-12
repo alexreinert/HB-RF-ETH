@@ -21,6 +21,8 @@
 #include "settings.h"
 #include "led.h"
 #include "updatecheck.h"
+#include "radiomoduleconnector.h"
+#include "radiomoduledetector.h"
 #include "rawuartudplistener.h"
 #include "esp_http_server.h"
 
@@ -30,7 +32,7 @@ private:
     httpd_handle_t _httpd_handle;
 
 public:
-    WebUI(Settings* settings, LED* statusLED, SysInfo *sysInfo, UpdateCheck* updateCheck, RawUartUdpListener* rawUartUdpListener, RadioModuleConnector* radioModuleConnector);
+    WebUI(Settings* settings, LED* statusLED, SysInfo *sysInfo, UpdateCheck* updateCheck, RawUartUdpListener* rawUartUdpListener, RadioModuleConnector* radioModuleConnector, RadioModuleDetector* radioModuleDetector);
     void start();
     void stop();
 };
