@@ -24,7 +24,6 @@
 #include "esp_log.h"
 #include "cJSON.h"
 #include "esp_ota_ops.h"
-#include "tcpip_adapter.h"
 #include "mbedtls/md.h"
 #include "mbedtls/base64.h"
 
@@ -55,6 +54,7 @@ static Settings *_settings;
 static LED *_statusLED;
 static SysInfo *_sysInfo;
 static UpdateCheck *_updateCheck;
+static Ethernet *_ethernet;
 static RawUartUdpListener *_rawUartUdpListener;
 static RadioModuleConnector *_radioModuleConnector;
 static RadioModuleDetector *_radioModuleDetector;
@@ -64,6 +64,10 @@ const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
 {
     if (addr.addr == IPADDR_ANY || addr.addr == IPADDR_NONE)
     {
+        if (fallback.addr == IPADDR_ANY || fallback.addr == IPADDR_NONE)
+        {
+            return "";
+        }
         return ip4addr_ntoa(&fallback);
     }
     return ip4addr_ntoa(&addr);
@@ -84,7 +88,8 @@ void formatRadioMAC(uint32_t radioMAC, char *buf)
     {
         sprintf(buf, "n/a");
     }
-    else{
+    else
+    {
         sprintf(buf, "0x%06X", radioMAC);
     }
 }
@@ -176,7 +181,7 @@ esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
     default:
         cJSON_AddStringToObject(sysinfo, "radioModuleType", "-");
         break;
-    }   
+    }
     cJSON_AddStringToObject(sysinfo, "radioModuleSerial", _radioModuleDetector->getSerial());
     char radioMAC[9];
     formatRadioMAC(_radioModuleDetector->getBidCosRadioMAC(), radioMAC);
@@ -204,20 +209,16 @@ void add_settings(cJSON *root)
     cJSON *settings = cJSON_AddObjectToObject(root, "settings");
 
     cJSON_AddStringToObject(settings, "hostname", _settings->getHostname());
-    tcpip_adapter_ip_info_t ipInfo;
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_ETH, &ipInfo);
+
     cJSON_AddBoolToObject(settings, "useDHCP", _settings->getUseDHCP());
-    cJSON_AddStringToObject(settings, "localIP", ip2str(_settings->getLocalIP(), ipInfo.ip));
-    cJSON_AddStringToObject(settings, "netmask", ip2str(_settings->getNetmask(), ipInfo.netmask));
-    cJSON_AddStringToObject(settings, "gateway", ip2str(_settings->getGateway(), ipInfo.gw));
-    tcpip_adapter_dns_info_t dnsInfo;
-    tcpip_adapter_get_dns_info(TCPIP_ADAPTER_IF_ETH, TCPIP_ADAPTER_DNS_MAIN, &dnsInfo);
-    cJSON_AddStringToObject(settings, "dns1", ip2str(_settings->getDns1(), dnsInfo.ip.u_addr.ip4));
-    tcpip_adapter_get_dns_info(TCPIP_ADAPTER_IF_ETH, TCPIP_ADAPTER_DNS_BACKUP, &dnsInfo);
-    if (dnsInfo.ip.u_addr.ip4.addr != IPADDR_ANY)
-    {
-        cJSON_AddStringToObject(settings, "dns2", ip2str(_settings->getDns2(), dnsInfo.ip.u_addr.ip4));
-    }
+
+    ip4_addr_t currentIP, currentNetmask, currentGateway, currentDNS1, currentDNS2;
+    _ethernet->getNetworkSettings(&currentIP, &currentNetmask, &currentGateway, &currentDNS1, &currentDNS2);
+    cJSON_AddStringToObject(settings, "localIP", ip2str(_settings->getLocalIP(), currentIP));
+    cJSON_AddStringToObject(settings, "netmask", ip2str(_settings->getNetmask(), currentNetmask));
+    cJSON_AddStringToObject(settings, "gateway", ip2str(_settings->getGateway(), currentGateway));
+    cJSON_AddStringToObject(settings, "dns1", ip2str(_settings->getDns1(), currentDNS1));
+    cJSON_AddStringToObject(settings, "dns2", ip2str(_settings->getDns2(), currentDNS2));
 
     cJSON_AddNumberToObject(settings, "timesource", _settings->getTimesource());
 
@@ -433,11 +434,12 @@ httpd_uri_t post_ota_update_handler = {
     .handler = post_ota_update_handler_func,
     .user_ctx = NULL};
 
-WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector, RadioModuleDetector *radioModuleDetector)
+WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, Ethernet *ethernet, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector, RadioModuleDetector *radioModuleDetector)
 {
     _settings = settings;
     _statusLED = statusLED;
     _sysInfo = sysInfo;
+    _ethernet = ethernet;
     _updateCheck = updateCheck;
     _rawUartUdpListener = rawUartUdpListener;
     _radioModuleConnector = radioModuleConnector;

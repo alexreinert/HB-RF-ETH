@@ -151,7 +151,7 @@ void app_main()
     UpdateCheck updateCheck(&sysInfo, &statusLED);
     updateCheck.start();
 
-    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &rawUartUdpLister, &radioModuleConnector, &radioModuleDetector);
+    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &ethernet, &rawUartUdpLister, &radioModuleConnector, &radioModuleDetector);
     webUI.start();
 
     powerLED.setState(LED_STATE_ON);

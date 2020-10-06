@@ -83,7 +83,7 @@
         ></b-form-input>
       </b-form-group>
       <b-form-group :label="$t('dcfOffset')" label-cols-sm="4" v-if="isDcfActivated">
-        <b-input-group append="&mu;s">
+        <b-input-group append="µs">
           <b-form-input
             type="number"
             v-model.number="$v.dcfOffset.$model"

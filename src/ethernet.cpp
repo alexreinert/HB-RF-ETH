@@ -33,40 +33,43 @@ void _handleIPEvent(void *arg, esp_event_base_t event_base, int32_t event_id, vo
 
 Ethernet::Ethernet(Settings *settings) : _settings(settings), _isConnected(false)
 {
-    tcpip_adapter_init();
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_init());
+
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_loop_create_default());
+
+    _netif_cfg = ESP_NETIF_DEFAULT_ETH();
+    _eth_netif = esp_netif_new(&_netif_cfg);
 
     if (settings->getUseDHCP())
     {
-        ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_ETH));
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcpc_start(_eth_netif));
     }
     else
     {
-        ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_ETH));
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcpc_stop(_eth_netif));
 
-        tcpip_adapter_ip_info_t ipInfo;
-        ipInfo.ip = settings->getLocalIP();
-        ipInfo.netmask = settings->getNetmask();
-        ipInfo.gw = settings->getGateway();
-        ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_ETH, &ipInfo));
+        esp_netif_ip_info_t ipInfo;
+        ipInfo.ip.addr = settings->getLocalIP().addr;
+        ipInfo.netmask.addr = settings->getNetmask().addr;
+        ipInfo.gw.addr = settings->getGateway().addr;
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_set_ip_info(_eth_netif, &ipInfo));
 
-        tcpip_adapter_dns_info_t dnsInfo;
+        esp_netif_dns_info_t dnsInfo;
         dnsInfo.ip.type = IPADDR_TYPE_V4;
         dnsInfo.ip.u_addr.ip4.addr = settings->getDns1().addr;
         if (dnsInfo.ip.u_addr.ip4.addr != IPADDR_ANY && dnsInfo.ip.u_addr.ip4.addr != IPADDR_NONE)
         {
-            ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_set_dns_info(TCPIP_ADAPTER_IF_ETH, TCPIP_ADAPTER_DNS_MAIN, &dnsInfo));
+            ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_set_dns_info(_eth_netif, ESP_NETIF_DNS_MAIN, &dnsInfo));
         }
 
         dnsInfo.ip.u_addr.ip4.addr = settings->getDns2().addr;
         if (dnsInfo.ip.u_addr.ip4.addr != IPADDR_ANY && dnsInfo.ip.u_addr.ip4.addr != IPADDR_NONE)
         {
-            ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_set_dns_info(TCPIP_ADAPTER_IF_ETH, TCPIP_ADAPTER_DNS_BACKUP, &dnsInfo));
+            ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_set_dns_info(_eth_netif, ESP_NETIF_DNS_BACKUP, &dnsInfo));
         }
     }
 
-    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_loop_create_default());
-
-    ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_set_default_eth_handlers());
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_eth_set_default_handlers(_eth_netif));
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_handler_register(ETH_EVENT, ESP_EVENT_ANY_ID, &::_handleETHEvent, (void *)this));
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &::_handleIPEvent, (void *)this));
 
@@ -83,6 +86,7 @@ Ethernet::Ethernet(Settings *settings) : _settings(settings), _isConnected(false
     _eth_config = ETH_DEFAULT_CONFIG(_mac, _phy);
     _eth_handle = NULL;
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_eth_driver_install(&_eth_config, &_eth_handle));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_attach(_eth_netif, esp_eth_new_netif_glue(_eth_handle)));
 }
 
 void Ethernet::start()
@@ -95,9 +99,30 @@ void Ethernet::stop()
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_eth_stop(_eth_handle));
 }
 
-bool Ethernet::getIsConnected()
+void Ethernet::getNetworkSettings(ip4_addr_t *ip, ip4_addr_t *netmask, ip4_addr_t *gateway, ip4_addr_t *dns1, ip4_addr_t *dns2)
 {
-    return _isConnected;
+    if (_isConnected)
+    {
+        esp_netif_ip_info_t ipInfo;
+        esp_netif_get_ip_info(_eth_netif, &ipInfo);
+        ip->addr = ipInfo.ip.addr;
+        netmask->addr = ipInfo.netmask.addr;
+        gateway->addr = ipInfo.gw.addr;
+
+        esp_netif_dns_info_t dnsInfo;
+        esp_netif_get_dns_info(_eth_netif, ESP_NETIF_DNS_MAIN, &dnsInfo);
+        dns1->addr = dnsInfo.ip.u_addr.ip4.addr;
+        esp_netif_get_dns_info(_eth_netif, ESP_NETIF_DNS_BACKUP, &dnsInfo);
+        dns2->addr = dnsInfo.ip.u_addr.ip4.addr;
+    }
+    else
+    {
+        ip->addr = 0;
+        netmask->addr = 0;
+        gateway->addr = 0;
+        dns1->addr = 0;
+        dns2->addr = 0;
+    }
 }
 
 void Ethernet::_handleETHEvent(esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -118,7 +143,7 @@ void Ethernet::_handleETHEvent(esp_event_base_t event_base, int32_t event_id, vo
         break;
     case ETHERNET_EVENT_START:
         ESP_LOGI(TAG, "Started");
-        ESP_ERROR_CHECK_WITHOUT_ABORT(tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_ETH, _settings->getHostname()));
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_set_hostname(_eth_netif, _settings->getHostname()));
         break;
     case ETHERNET_EVENT_STOP:
         _isConnected = false;
@@ -132,7 +157,7 @@ void Ethernet::_handleETHEvent(esp_event_base_t event_base, int32_t event_id, vo
 void Ethernet::_handleIPEvent(esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-    const tcpip_adapter_ip_info_t *ip_info = &event->ip_info;
+    const esp_netif_ip_info_t *ip_info = &event->ip_info;
 
     _isConnected = true;
     ESP_LOGI(TAG, "IPv4: " IPSTR, IP2STR(&ip_info->ip));
