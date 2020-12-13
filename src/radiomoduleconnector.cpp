@@ -49,14 +49,12 @@ RadioModuleConnector::RadioModuleConnector(LED *redLED, LED *greenLed, LED *blue
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 0,
-        .use_ref_tick = false};
+        .source_clk = UART_SCLK_APB};
     uart_param_config(UART_NUM_1, &uart_config);
     uart_set_pin(UART_NUM_1, HM_TX_PIN, HM_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
     using namespace std::placeholders;
     _streamParser = new StreamParser(false, std::bind(&RadioModuleConnector::_handleFrame, this, _1, _2));
-
-    resetModule();
 }
 
 void RadioModuleConnector::start()

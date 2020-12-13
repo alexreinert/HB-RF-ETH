@@ -102,13 +102,19 @@ board_type_t detectBoard()
 {
     uint32_t voltage = get_voltage(BOARD_REV_SENSE_UNIT, BOARD_REV_SENSE_CHANNEL, ADC_WIDTH_BIT_10, ADC_ATTEN_DB_11);
 
-    switch (voltage)
+    switch (voltage) // R31/R32
     {
-    case 1500 ... 1800:
+    case 400 ... 700: // 10K/2K
+        return BOARD_TYPE_REV_1_10_PUB;
+
+    case 1500 ... 1800: // 10K/10K
         return BOARD_TYPE_REV_1_8_SK;
 
-    case 2600 ... 2900:
+    case 2600 ... 2900: // 2K/10K
         return BOARD_TYPE_REV_1_8_PUB;
+
+    case 2901 ... 3200: // 1K/12K
+        return BOARD_TYPE_REV_1_10_SK;
 
     default:
         ESP_LOGW(TAG, "Could not determine board, voltage: %u", voltage);

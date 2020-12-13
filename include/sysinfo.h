@@ -22,6 +22,8 @@ typedef enum
 {
     BOARD_TYPE_REV_1_8_PUB = 0,
     BOARD_TYPE_REV_1_8_SK = 1,
+    BOARD_TYPE_REV_1_10_PUB = 2,
+    BOARD_TYPE_REV_1_10_SK = 3,
     BOARD_TYPE_UNKNOWN = 255
 } board_type_t;
 

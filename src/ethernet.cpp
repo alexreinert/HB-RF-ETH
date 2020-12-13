@@ -55,7 +55,7 @@ Ethernet::Ethernet(Settings *settings) : _settings(settings), _isConnected(false
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_set_ip_info(_eth_netif, &ipInfo));
 
         esp_netif_dns_info_t dnsInfo;
-        dnsInfo.ip.type = IPADDR_TYPE_V4;
+        dnsInfo.ip.type = ESP_IPADDR_TYPE_V4;
         dnsInfo.ip.u_addr.ip4.addr = settings->getDns1().addr;
         if (dnsInfo.ip.u_addr.ip4.addr != IPADDR_ANY && dnsInfo.ip.u_addr.ip4.addr != IPADDR_NONE)
         {
