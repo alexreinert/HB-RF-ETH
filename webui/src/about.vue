@@ -7,7 +7,7 @@
       header-text-variant="white"
       class="mb-3"
     >
-      <p>Copyright (c) 2020, Alexander Reinert</p>
+      <p>Copyright (c) 2021, Alexander Reinert</p>
       <i18n path="about.license" tag="p">
         <template v-slot:link>
           <a
