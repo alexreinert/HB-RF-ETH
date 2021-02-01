@@ -12,14 +12,14 @@
   "license": "Apache-2.0",
   "dependencies": {
     "axios": "^0.21.1",
-    "bootstrap": "^4.5.3",
+    "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.21.2",
     "vue": "^2.6.12",
     "vue-hot-reload-api": "^2.3.4",
-    "vue-i18n": "^8.22.3",
-    "vue-router": "^3.4.9",
+    "vue-i18n": "^8.22.4",
+    "vue-router": "^3.5.1",
     "vuelidate": "^0.7.6",
-    "vuex": "^3.6.0"
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@vue/component-compiler-utils": "^3.2.0",
