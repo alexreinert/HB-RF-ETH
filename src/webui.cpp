@@ -168,8 +168,6 @@ esp_err_t get_sysinfo_json_handler_func(httpd_req_t *req)
     cJSON_AddNumberToObject(sysinfo, "memoryUsage", _sysInfo->getMemoryUsage());
     cJSON_AddNumberToObject(sysinfo, "cpuUsage", _sysInfo->getCpuUsage());
 
-    cJSON_AddStringToObject(sysinfo, "rawUartRemoteAddress", ip2str(_rawUartUdpListener->getConnectedRemoteAddress()));
-
     switch (_radioModuleDetector->getRadioModuleType())
     {
     case RADIO_MODULE_HM_MOD_RPI_PCB:
