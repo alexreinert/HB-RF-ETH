@@ -16,7 +16,7 @@
  *  limitations under the License.
  */
 
-#include "GPS.h"
+#include "gps.h"
 #include "pins.h"
 #include "esp_log.h"
 #include "string.h"
