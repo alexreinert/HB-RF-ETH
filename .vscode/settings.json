@@ -56,7 +56,8 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "esp_transport.h": "c"
     },
     "license-header-manager.excludeExtensions": [
         ".js",

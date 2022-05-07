@@ -1,19 +1,20 @@
 /* 
  *  settings.cpp is part of the HB-RF-ETH firmware - https://github.com/alexreinert/HB-RF-ETH
  *  
- *  Copyright 2021 Alexander Reinert
+ *  Copyright 2022 Alexander Reinert
  *  
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *  The HB-RF-ETH firmware is licensed under a
+ *  Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
  *  
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *  You should have received a copy of the license along with this
+ *  work.  If not, see <http://creativecommons.org/licenses/by-nc-sa/4.0/>.
  *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *  
  */
 
 #include "settings.h"
@@ -74,7 +75,7 @@ void Settings::load()
   size_t adminPasswordLength = sizeof(_adminPassword);
   if (nvs_get_str(handle, "adminPassword", _adminPassword, &adminPasswordLength) != ESP_OK)
   {
-    snprintf(_adminPassword, sizeof(_adminPassword), "admin");
+    strncpy(_adminPassword, "admin", sizeof(_adminPassword) - 1);
   }
 
   size_t hostnameLength = sizeof(_hostname);
@@ -82,7 +83,7 @@ void Settings::load()
   {
     uint8_t baseMac[6];
     esp_read_mac(baseMac, ESP_MAC_ETH);
-    snprintf(_hostname, sizeof(_hostname), "HB-RF-ETH-%02X%02X%02X", baseMac[3], baseMac[4], baseMac[5]);
+    snprintf(_hostname, sizeof(_hostname) - 1, "HB-RF-ETH-%02X%02X%02X", baseMac[3], baseMac[4], baseMac[5]);
   }
 
   GET_BOOL(handle, "useDHCP", _useDHCP, true);
@@ -101,7 +102,7 @@ void Settings::load()
   size_t ntpServerLength = sizeof(_ntpServer);
   if (nvs_get_str(handle, "ntpServer", _ntpServer, &ntpServerLength) != ESP_OK)
   {
-    snprintf(_ntpServer, sizeof(_ntpServer), "pool.ntp.org");
+    strncpy(_ntpServer, "pool.ntp.org", sizeof(_ntpServer) - 1);
   }
 
   GET_INT(handle, "ledBrightness", _ledBrightness, 100);
@@ -157,7 +158,7 @@ char *Settings::getAdminPassword()
 
 void Settings::setAdminPassword(char *adminPassword)
 {
-  snprintf(_adminPassword, sizeof(_adminPassword), adminPassword);
+  strncpy(_adminPassword, adminPassword, sizeof(_adminPassword) - 1);
 }
 
 char *Settings::getHostname()
@@ -197,7 +198,7 @@ ip4_addr_t Settings::getDns2()
 
 void Settings::setNetworkSettings(char *hostname, bool useDHCP, ip4_addr_t localIP, ip4_addr_t netmask, ip4_addr_t gateway, ip4_addr_t dns1, ip4_addr_t dns2)
 {
-  snprintf(_hostname, sizeof(_hostname), hostname);
+  strncpy(_hostname, hostname, sizeof(_hostname) - 1);
   _useDHCP = useDHCP;
   _localIP = localIP;
   _netmask = netmask;
@@ -243,7 +244,7 @@ char *Settings::getNtpServer()
 
 void Settings::setNtpServer(char *ntpServer)
 {
-  snprintf(_ntpServer, sizeof(_ntpServer), ntpServer);
+  strncpy(_ntpServer, ntpServer, sizeof(_ntpServer) - 1);
 }
 
 int Settings::getLEDBrightness()

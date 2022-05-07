@@ -1,7 +1,7 @@
 # HB-RF-ETH Firmware
 
-### Unterstützung [![Spenden](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WUC7QU84EU7DA)
-Meine Entwicklungen im Homematic Umfeld sind sehr kostenintensiv, z.B. werden viele verschiedene Testgeräte oder auch diverse Prototypen von Platinen benötigt. Allerdings erhält meine Projekt keine Unterstützung durch kommerzielle Anbieter. Ich freue mich daher durch eine Unterstützung per [Github Sponsors](https://github.com/sponsors/alexreinert), via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WUC7QU84EU7DA) oder durch eine Aufmerksamkeit auf meinem [Amazon Wunschzettel](https://www.amazon.de/gp/registry/wishlist/3NNUQIQO20AAP/ref=nav_wishlist_lists_1).
+### Unterstützung [<img src="https://ko-fi.com/img/githubbutton_sm.svg" height="20" alt="Support me on Ko-fi">](https://ko-fi.com/alexreinert) [<img src="https://img.shields.io/badge/donate-PayPal-green.svg" height="20" alt="Donate via Paypal">](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=4PW43VJ2DZ7R2)
+Meine Entwicklungen im Homematic Umfeld sind sehr kostenintensiv, z.B. werden viele verschiedene Testgeräte oder auch diverse Prototypen von Platinen benötigt. Allerdings erhält meine Projekt keine Unterstützung durch kommerzielle Anbieter. Ich freue mich daher durch eine Unterstützung mit einer Spende via [Ko-fi](https://ko-fi.com/alexreinert), [PayPal](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=4PW43VJ2DZ7R2) oder durch eine Aufmerksamkeit auf meinem [Amazon Wunschzettel](https://www.amazon.de/gp/registry/wishlist/3NNUQIQO20AAP/ref=nav_wishlist_lists_1).
 
 ### Worum es geht
 Dieses Repository enhält die Firmware für die HB-RF-ETH Platine, welches es ermöglicht, ein Homematic Funkmodul HM-MOD-RPI-PCB oder RPI-RF-MOD per Netzwerk an eine debmatic oder piVCCU3 Installation anzubinden.
@@ -75,4 +75,4 @@ Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als
 * AskSin Analyzer Light
 
 ### Lizenz
-Die Firmware steht unter Apache 2.0 Lizenz.
+Die Firmware steht unter Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Lizenz.

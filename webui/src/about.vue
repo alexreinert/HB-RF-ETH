@@ -7,19 +7,16 @@
       header-text-variant="white"
       class="mb-3"
     >
-      <p>Copyright (c) 2021, Alexander Reinert</p>
+      <p>Copyright (c) 2022, Alexander Reinert</p>
       <i18n path="about.license" tag="p">
         <template v-slot:link>
-          <a
-            href="https://github.com/alexreinert/HB-RF-ETH"
-            target="_new"
-          >{{ $t('about.firmware') }}</a>
+          <a href="https://github.com/alexreinert/HB-RF-ETH" target="_new">{{ $t('about.firmware') }}</a>
         </template>
         <template v-slot:license>
           <a
-            href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE"
+            href="https://github.com/alexreinert/HB-RF-ETH/blob/master/LICENSE.md"
             target="_new"
-          >{{ $t('about.apache2') }}</a>
+          >{{ $t('about.ccbyncsa4') }}</a>
         </template>
       </i18n>
       <i18n path="about.license" tag="p">
@@ -28,7 +25,6 @@
         </template>
         <template v-slot:license>
           <a
-            place="license"
             href="https://github.com/alexreinert/PCB/blob/master/LICENSE.md"
             target="_new"
           >{{ $t('about.ccbyncsa4') }}</a>

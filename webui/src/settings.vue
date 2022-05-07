@@ -301,7 +301,8 @@ export default {
     },
     ntpServer: {
       required: requiredIf("isNtpActived"),
-      domainname
+      domainname,
+      maxLength: maxLength(64)
     },
     dcfOffset: {
       required: requiredIf("isDcfActived"),
