@@ -64,6 +64,10 @@ Firmware Updates sind fertig kompiliert und Releases zu finden und können per W
 ### Einbindung in piVCCU3 und debmatic
 Die Unterstützung für die Platine HB-RF-ETH ist in piVCCU3 ab Version 3.51.6-41 und in debmatic ab Version 3.51.6-46 eingebaut. Die Installation der Platine erfolgt über das Paket "hb-rf-eth". Weiteres Details findet man in der Installationsanleitung von piVCCU3 bzw. debmatic.
 
+### Wo bekomme ich die Hardware her?
+Die Platine ist veröffentlicht auf [Github](https://github.com/alexreinert/PCB/?tab=readme-ov-file#hb-rf-eth) und kann selbst gefertigt werden.
+Alternativ kann diese auch als Bausatz mit vollständig vorbestückten SMD Bauteilen bei [viopcb](https://www.viopcb.de/Bausatz-HB-RF-ETH-mit-PoE) gekauft werden.
+
 ### Roadmap
 Folgende Punkte sind angedacht für zukünftige Releases. Die Sortierung ist als zufällig anzusehen und es ist nicht garantiert, dass alle Punkte auch umgesetzt werden.
 
