@@ -1,7 +1,12 @@
 # HB-RF-ETH Firmware
 
+> **Hinweis:** Dieses Repository ist ein Fork von (https://github.com/alexreinert/HB-RF-ETH)), ursprünglich entwickelt von Alexander Reinert. Die Urheberschaft des ursprünglichen Projekts liegt vollständig beim Originalautor.
+> 
+> **Zweck dieses Forks:** Erweiterung der Firmware um eine API und MQTT zur Überwachung des Verbindungszustandes zwischen OpenCCU und der HB-RF-ETH.
+> 
+
 ### Unterstützung [<img src="https://ko-fi.com/img/githubbutton_sm.svg" height="20" alt="Support me on Ko-fi">](https://ko-fi.com/alexreinert) [<img src="https://img.shields.io/badge/donate-PayPal-green.svg" height="20" alt="Donate via Paypal">](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=4PW43VJ2DZ7R2)
-Meine Entwicklungen im Homematic Umfeld sind sehr kostenintensiv, z.B. werden viele verschiedene Testgeräte oder auch diverse Prototypen von Platinen benötigt. Allerdings erhält meine Projekt keine Unterstützung durch kommerzielle Anbieter. Ich freue mich daher durch eine Unterstützung mit einer Spende via [Ko-fi](https://ko-fi.com/alexreinert), [PayPal](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=4PW43VJ2DZ7R2) oder durch eine Aufmerksamkeit auf meinem [Amazon Wunschzettel](https://www.amazon.de/gp/registry/wishlist/3NNUQIQO20AAP/ref=nav_wishlist_lists_1).
+Meine (Alexander Reinert) Entwicklungen im Homematic Umfeld sind sehr kostenintensiv, z.B. werden viele verschiedene Testgeräte oder auch diverse Prototypen von Platinen benötigt. Allerdings erhält meine Projekt keine Unterstützung durch kommerzielle Anbieter. Ich freue mich daher durch eine Unterstützung mit einer Spende via [Ko-fi](https://ko-fi.com/alexreinert), [PayPal](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=4PW43VJ2DZ7R2) oder durch eine Aufmerksamkeit auf meinem [Amazon Wunschzettel](https://www.amazon.de/gp/registry/wishlist/3NNUQIQO20AAP/ref=nav_wishlist_lists_1).
 
 ### Worum es geht
 Dieses Repository enhält die Firmware für die HB-RF-ETH Platine, welches es ermöglicht, ein Homematic Funkmodul HM-MOD-RPI-PCB oder RPI-RF-MOD per Netzwerk an eine debmatic oder piVCCU3 Installation anzubinden.
@@ -32,6 +37,55 @@ Hierbei gilt, dass bei einer debmatic oder piVCCU3 Installation immer nur ein Fu
 * Erkennung des Funkmoduls und Ausgabe von Typ, Seriennummer, Funkadresse und SGTIN in der WebUI
 * Regelmäßige Prüfung auf Firmwareupdates
 * Werksreset per Taster
+* REST-API zum Auslesen des System- und Funkmodulstatus (siehe unten)
+* MQTT Anbindung inkl. optionaler Home Assistant Discovery (siehe unten)
+
+### REST-API
+Der Status kann ohne Anmeldung per `GET http://<hb-rf-eth>/api/v1/status` als JSON abgerufen werden:
+
+```json
+{
+  "device": {
+    "serial": "8CAAB5AA186B",
+    "hostname": "HB-RF-ETH-AA186B",
+    "boardType": "REV 1.10 PUB",
+    "firmwareVersion": "1.3.1",
+    "latestFirmwareVersion": "1.3.1",
+    "uptime": 86400,
+    "cpuUsage": 1.95,
+    "memoryUsage": 41.71,
+    "ipAddress": "192.168.20.10"
+  },
+  "ccu": {
+    "connected": true,
+    "address": "192.168.20.2"
+  },
+  "radioModule": {
+    "detected": true,
+    "type": "HM-MOD-RPI-PCB",
+    "serial": "OEQ0607369",
+    "bidCosRadioMAC": "0x59D9A9",
+    "hmIPRadioMAC": "0xBE8379",
+    "sgtin": "3014F711A061A7D70992AC89",
+    "firmwareVersion": "1.4.1"
+  }
+}
+```
+
+* `uptime` in Sekunden, `cpuUsage` und `memoryUsage` in Prozent
+* `ccu.connected` ist `true`, solange eine CCU (debmatic / piVCCU3) per raw-uart verbunden ist, `ccu.address` ist dann ihre IP Adresse
+
+### MQTT
+MQTT wird in der WebUI unter Einstellungen aktiviert (Broker, Port, optional Benutzer/Passwort, Topic Präfix, Sendeintervall, Home Assistant Discovery). Änderungen werden nach einem Neustart aktiv.
+
+| Topic | Inhalt |
+| --- | --- |
+| `<präfix>/status` | `online` bzw. `offline` (retained, `offline` als Last Will) |
+| `<präfix>/state` | JSON, identisch zu `/api/v1/status` (retained) |
+
+Der Präfix ist standardmäßig `hb-rf-eth/<Seriennummer>`. Der Status wird im eingestellten Intervall (Standard 60 Sekunden) und zusätzlich sofort bei einer Verbindung oder Trennung der CCU gesendet.
+
+Ist die Home Assistant Discovery aktiv, werden unter `homeassistant/...` Konfigurationen gesendet, sodass Home Assistant das HB-RF-ETH automatisch als Gerät mit Sensoren (u.a. CCU verbunden, Funkmodultyp, Seriennummer, Funkadressen, SGTIN, CPU/Speicher, Uptime) anlegt.
 
 ### Bekannte Einschränkungen
 * Nach einem Neustart der Platine (z.B. bei Stromausfall) findet kein automatischer Reconnect statt, in diesem Fall muss die CCU Software daher neu gestartet werden.

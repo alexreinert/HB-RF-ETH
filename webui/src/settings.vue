@@ -116,6 +116,83 @@
           </b-form-select>
         </b-input-group>
       </b-form-group>
+      <hr />
+      <b-form-group :label="$t('mqtt')" label-cols-sm="4">
+        <b-form-radio-group buttons v-model="mqttEnabled" required>
+          <b-form-radio :value="true">{{ $t('enabled') }}</b-form-radio>
+          <b-form-radio :value="false">{{ $t('disabled') }}</b-form-radio>
+        </b-form-radio-group>
+      </b-form-group>
+      <b-form-group :label="$t('mqttServer')" label-cols-sm="4" v-if="mqttEnabled">
+        <b-form-input
+          type="text"
+          v-model="$v.mqttServer.$model"
+          trim
+          :state="validateState('mqttServer')"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('mqttPort')" label-cols-sm="4" v-if="mqttEnabled">
+        <b-form-input
+          type="number"
+          v-model.number="$v.mqttPort.$model"
+          min="1"
+          max="65535"
+          :state="validateState('mqttPort')"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('mqttUser')" label-cols-sm="4" v-if="mqttEnabled">
+        <b-form-input
+          type="text"
+          v-model="$v.mqttUser.$model"
+          trim
+          autocomplete="off"
+          :state="validateState('mqttUser')"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+        :label="$t('mqttPassword')"
+        :description="mqttPasswordSet ? $t('mqttPasswordKeep') : ''"
+        label-cols-sm="4"
+        v-if="mqttEnabled"
+      >
+        <b-form-input
+          type="password"
+          v-model="$v.mqttPassword.$model"
+          autocomplete="new-password"
+          :state="validateState('mqttPassword')"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group
+        :label="$t('mqttTopicPrefix')"
+        :description="$t('mqttTopicPrefixHint')"
+        label-cols-sm="4"
+        v-if="mqttEnabled"
+      >
+        <b-form-input
+          type="text"
+          v-model="$v.mqttTopicPrefix.$model"
+          trim
+          placeholder="hb-rf-eth/<serial>"
+          :state="validateState('mqttTopicPrefix')"
+        ></b-form-input>
+      </b-form-group>
+      <b-form-group :label="$t('mqttInterval')" label-cols-sm="4" v-if="mqttEnabled">
+        <b-input-group append="s">
+          <b-form-input
+            type="number"
+            v-model.number="$v.mqttInterval.$model"
+            min="5"
+            max="3600"
+            :state="validateState('mqttInterval')"
+          ></b-form-input>
+        </b-input-group>
+      </b-form-group>
+      <b-form-group :label="$t('mqttHaDiscovery')" label-cols-sm="4" v-if="mqttEnabled">
+        <b-form-radio-group buttons v-model="mqttHaDiscovery" required>
+          <b-form-radio :value="true">{{ $t('enabled') }}</b-form-radio>
+          <b-form-radio :value="false">{{ $t('disabled') }}</b-form-radio>
+        </b-form-radio-group>
+      </b-form-group>
 
       <b-alert
         variant="success"
@@ -158,10 +235,13 @@ import {
   numeric,
   ipAddress,
   sameAs,
+  integer,
+  between,
   helpers
 } from "vuelidate/lib/validators";
 
 const hostname = helpers.regex('hostname', /^[a-zA-Z0-9_-]{1,63}$/)
+const mqttTopic = helpers.regex('mqttTopic', /^[^#+\s]*$/)
 const domainname = helpers.regex('domainname', /^([a-zA-Z0-9_-]{1,63}\.)*[a-zA-Z0-9_-]{1,63}$/)
 
 import VueI18n from "vue-i18n";
@@ -215,6 +295,15 @@ export default {
       gpsBaudrate: 9600,
       ntpServer: "",
       ledBrightness: 100,
+      mqttEnabled: false,
+      mqttServer: "",
+      mqttPort: 1883,
+      mqttUser: "",
+      mqttPassword: "",
+      mqttPasswordSet: false,
+      mqttTopicPrefix: "",
+      mqttInterval: 60,
+      mqttHaDiscovery: true,
 
       showSuccess: null,
       showError: null
@@ -232,6 +321,7 @@ export default {
     this.gpsBaudrate = this.$store.state.settings.gpsBaudrate;
     this.ntpServer = this.$store.state.settings.ntpServer;
     this.ledBrightness = this.$store.state.settings.ledBrightness;
+    this.applyMqttSettings(this.$store.state.settings);
 
     this.unwatch = this.$store.watch(
       (state, getters) => {
@@ -249,6 +339,7 @@ export default {
         this.gpsBaudrate = value.gpsBaudrate;
         this.ntpServer = value.ntpServer;
         this.ledBrightness = value.ledBrightness;
+        this.applyMqttSettings(value);
       },
       { deep: true }
     );
@@ -307,12 +398,47 @@ export default {
     dcfOffset: {
       required: requiredIf("isDcfActived"),
       numeric
+    },
+    mqttServer: {
+      required: requiredIf("mqttEnabled"),
+      domainname,
+      maxLength: maxLength(64)
+    },
+    mqttPort: {
+      required: requiredIf("mqttEnabled"),
+      integer,
+      between: between(1, 65535)
+    },
+    mqttUser: {
+      maxLength: maxLength(64)
+    },
+    mqttPassword: {
+      maxLength: maxLength(64)
+    },
+    mqttTopicPrefix: {
+      mqttTopic,
+      maxLength: maxLength(64)
+    },
+    mqttInterval: {
+      required: requiredIf("mqttEnabled"),
+      integer,
+      between: between(5, 3600)
     }
   },
   mounted() {
     this.$store.dispatch("settings/load");
   },
   methods: {
+    applyMqttSettings(value) {
+      this.mqttEnabled = value.mqttEnabled;
+      this.mqttServer = value.mqttServer;
+      this.mqttPort = value.mqttPort;
+      this.mqttUser = value.mqttUser;
+      this.mqttPasswordSet = value.mqttPasswordSet;
+      this.mqttTopicPrefix = value.mqttTopicPrefix;
+      this.mqttInterval = value.mqttInterval;
+      this.mqttHaDiscovery = value.mqttHaDiscovery;
+    },
     validateState(name) {
       const { $dirty, $error } = this.$v[name];
       return $dirty && $error ? false : null;
@@ -340,7 +466,15 @@ export default {
           dcfOffset: self.dcfOffset,
           gpsBaudrate: self.gpsBaudrate,
           ntpServer: self.ntpServer,
-          ledBrightness: self.ledBrightness
+          ledBrightness: self.ledBrightness,
+          mqttEnabled: self.mqttEnabled,
+          mqttServer: self.mqttServer,
+          mqttPort: self.mqttPort,
+          mqttUser: self.mqttUser,
+          mqttPassword: self.mqttPassword,
+          mqttTopicPrefix: self.mqttTopicPrefix,
+          mqttInterval: self.mqttInterval,
+          mqttHaDiscovery: self.mqttHaDiscovery
         })
         .then(
           () => {
@@ -377,6 +511,16 @@ export default {
         dcfOffset: "DCF Versatz",
         gpsBaudrate: "GPS Baudrate",
         ledBrightness: "LED Helligkeit",
+        mqtt: "MQTT",
+        mqttServer: "MQTT Broker",
+        mqttPort: "MQTT Port",
+        mqttUser: "MQTT Benutzer",
+        mqttPassword: "MQTT Passwort",
+        mqttPasswordKeep: "Leer lassen, um das gespeicherte Passwort beizubehalten.",
+        mqttTopicPrefix: "MQTT Topic Präfix",
+        mqttTopicPrefixHint: "Leer lassen für hb-rf-eth/<Seriennummer>.",
+        mqttInterval: "Sendeintervall",
+        mqttHaDiscovery: "Home Assistant Discovery",
         save: "Speichern",
         saveSuccess:
           "Einstellungen wurden erfolgreich gespeichert. Bitte starten Sie das System neu um sie zu übernehmen.",
@@ -404,6 +548,16 @@ export default {
         dcfOffset: "DCF Offset",
         gpsBaudrate: "GPS Baudrate",
         ledBrightness: "LED brightness",
+        mqtt: "MQTT",
+        mqttServer: "MQTT broker",
+        mqttPort: "MQTT port",
+        mqttUser: "MQTT user",
+        mqttPassword: "MQTT password",
+        mqttPasswordKeep: "Leave empty to keep the stored password.",
+        mqttTopicPrefix: "MQTT topic prefix",
+        mqttTopicPrefixHint: "Leave empty for hb-rf-eth/<serial>.",
+        mqttInterval: "Publish interval",
+        mqttHaDiscovery: "Home Assistant discovery",
         save: "Save",
         saveSuccess:
           "Settings were successfully saved. Please restart to take them effect.",

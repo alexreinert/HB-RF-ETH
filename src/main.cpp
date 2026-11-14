@@ -41,6 +41,8 @@
 #include "ntpserver.h"
 #include "esp_ota_ops.h"
 #include "updatecheck.h"
+#include "devicestatus.h"
+#include "mqttpublisher.h"
 
 static const char *TAG = "HB-RF-ETH";
 
@@ -163,8 +165,13 @@ void app_main()
     UpdateCheck updateCheck(&sysInfo, &statusLED);
     updateCheck.start();
 
-    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &ethernet, &rawUartUdpLister, &radioModuleConnector, &radioModuleDetector);
+    DeviceStatus deviceStatus(&settings, &sysInfo, &updateCheck, &ethernet, &rawUartUdpLister, &radioModuleDetector);
+
+    WebUI webUI(&settings, &statusLED, &sysInfo, &updateCheck, &ethernet, &rawUartUdpLister, &radioModuleConnector, &radioModuleDetector, &deviceStatus);
     webUI.start();
+
+    MqttPublisher mqttPublisher(&settings, &deviceStatus);
+    mqttPublisher.start();
 
     powerLED.setState(LED_STATE_ON);
     statusLED.setState(LED_STATE_OFF);

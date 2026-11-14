@@ -52,6 +52,15 @@ private:
 
   int _ledBrightness;
 
+  bool _mqttEnabled;
+  char _mqttServer[65] = {0};
+  int _mqttPort;
+  char _mqttUser[65] = {0};
+  char _mqttPassword[65] = {0};
+  char _mqttTopicPrefix[65] = {0};
+  int _mqttInterval;
+  bool _mqttHaDiscovery;
+
 public:
   Settings();
   void load();
@@ -85,4 +94,16 @@ public:
 
   int getLEDBrightness();
   void setLEDBrightness(int brightness);
+
+  bool getMqttEnabled();
+  char *getMqttServer();
+  int getMqttPort();
+  char *getMqttUser();
+  char *getMqttPassword();
+  char *getMqttTopicPrefix();
+  int getMqttInterval();
+  bool getMqttHaDiscovery();
+
+  // password == NULL keeps the currently stored password
+  void setMqttSettings(bool enabled, const char *server, int port, const char *user, const char *password, const char *topicPrefix, int interval, bool haDiscovery);
 };

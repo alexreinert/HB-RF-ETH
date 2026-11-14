@@ -59,6 +59,7 @@ static Ethernet *_ethernet;
 static RawUartUdpListener *_rawUartUdpListener;
 static RadioModuleConnector *_radioModuleConnector;
 static RadioModuleDetector *_radioModuleDetector;
+static DeviceStatus *_deviceStatus;
 static char _token[46];
 
 const char *ip2str(ip4_addr_t addr, ip4_addr_t fallback)
@@ -93,6 +94,28 @@ void formatRadioMAC(uint32_t radioMAC, char *buf)
     {
         sprintf(buf, "0x%06X", radioMAC);
     }
+}
+
+// Receives the complete request body into buffer (zero terminated).
+// Returns the number of bytes received or -1 on error / if the body is too large.
+int receive_body(httpd_req_t *req, char *buffer, size_t bufferSize)
+{
+    if (req->content_len >= bufferSize)
+        return -1;
+
+    size_t received = 0;
+    while (received < req->content_len)
+    {
+        int len = httpd_req_recv(req, buffer + received, req->content_len - received);
+        if (len == HTTPD_SOCK_ERR_TIMEOUT)
+            continue;
+        if (len <= 0)
+            return -1;
+        received += len;
+    }
+
+    buffer[received] = 0;
+    return received;
 }
 
 esp_err_t validate_auth(httpd_req_t *req)
@@ -203,6 +226,28 @@ httpd_uri_t get_sysinfo_json_handler = {
     .handler = get_sysinfo_json_handler_func,
     .user_ctx = NULL};
 
+// Public, read-only REST API with a stable format, see README.md
+esp_err_t get_api_status_handler_func(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+    cJSON *root = _deviceStatus->toJson();
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+
+    return ESP_OK;
+}
+
+httpd_uri_t get_api_status_handler = {
+    .uri = "/api/v1/status",
+    .method = HTTP_GET,
+    .handler = get_api_status_handler_func,
+    .user_ctx = NULL};
+
 void add_settings(cJSON *root)
 {
     cJSON *settings = cJSON_AddObjectToObject(root, "settings");
@@ -228,6 +273,16 @@ void add_settings(cJSON *root)
     cJSON_AddStringToObject(settings, "ntpServer", _settings->getNtpServer());
 
     cJSON_AddNumberToObject(settings, "ledBrightness", _settings->getLEDBrightness());
+
+    cJSON_AddBoolToObject(settings, "mqttEnabled", _settings->getMqttEnabled());
+    cJSON_AddStringToObject(settings, "mqttServer", _settings->getMqttServer());
+    cJSON_AddNumberToObject(settings, "mqttPort", _settings->getMqttPort());
+    cJSON_AddStringToObject(settings, "mqttUser", _settings->getMqttUser());
+    // the password is never sent back, only whether one is stored
+    cJSON_AddBoolToObject(settings, "mqttPasswordSet", strlen(_settings->getMqttPassword()) > 0);
+    cJSON_AddStringToObject(settings, "mqttTopicPrefix", _settings->getMqttTopicPrefix());
+    cJSON_AddNumberToObject(settings, "mqttInterval", _settings->getMqttInterval());
+    cJSON_AddBoolToObject(settings, "mqttHaDiscovery", _settings->getMqttHaDiscovery());
 }
 
 esp_err_t get_settings_json_handler_func(httpd_req_t *req)
@@ -280,6 +335,21 @@ bool cJSON_GetBoolValue(const cJSON *item)
     return false;
 }
 
+bool cJSON_GetBoolValue(const cJSON *item, bool defaultValue)
+{
+    return cJSON_IsBool(item) ? (item->type == cJSON_True) : defaultValue;
+}
+
+int cJSON_GetIntValue(const cJSON *item, int defaultValue)
+{
+    return cJSON_IsNumber(item) ? item->valueint : defaultValue;
+}
+
+const char *cJSON_GetStringValue(const cJSON *item, const char *defaultValue)
+{
+    return cJSON_IsString(item) ? item->valuestring : defaultValue;
+}
+
 esp_err_t post_settings_json_handler_func(httpd_req_t *req)
 {
     if (validate_auth(req) != ESP_OK)
@@ -289,14 +359,15 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
         return ESP_OK;
     }
 
-    char buffer[1024];
-    int len = httpd_req_recv(req, buffer, sizeof(buffer) - 1);
+    char *buffer = (char *)malloc(2048);
+    if (buffer == NULL)
+        return ESP_FAIL;
+    int len = receive_body(req, buffer, 2048);
+    cJSON *root = (len > 0) ? cJSON_Parse(buffer) : NULL;
+    free(buffer);
 
-    if (len > 0)
+    if (root != NULL)
     {
-        buffer[len] = 0;
-        cJSON *root = cJSON_Parse(buffer);
-
         char *adminPassword = cJSON_GetStringValue(cJSON_GetObjectItem(root, "adminPassword"));
 
         char *hostname = cJSON_GetStringValue(cJSON_GetObjectItem(root, "hostname"));
@@ -307,15 +378,15 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
         ip4_addr_t dns1 = cJSON_GetIPAddrValue(cJSON_GetObjectItem(root, "dns1"));
         ip4_addr_t dns2 = cJSON_GetIPAddrValue(cJSON_GetObjectItem(root, "dns2"));
 
-        timesource_t timesource = (timesource_t)cJSON_GetObjectItem(root, "timesource")->valueint;
+        timesource_t timesource = (timesource_t)cJSON_GetIntValue(cJSON_GetObjectItem(root, "timesource"), (int)_settings->getTimesource());
 
-        int dcfOffset = cJSON_GetObjectItem(root, "dcfOffset")->valueint;
+        int dcfOffset = cJSON_GetIntValue(cJSON_GetObjectItem(root, "dcfOffset"), _settings->getDcfOffset());
 
-        int gpsBaudrate = cJSON_GetObjectItem(root, "gpsBaudrate")->valueint;
+        int gpsBaudrate = cJSON_GetIntValue(cJSON_GetObjectItem(root, "gpsBaudrate"), _settings->getGpsBaudrate());
 
         char *ntpServer = cJSON_GetStringValue(cJSON_GetObjectItem(root, "ntpServer"));
 
-        int ledBrightness = cJSON_GetObjectItem(root, "ledBrightness")->valueint;
+        int ledBrightness = cJSON_GetIntValue(cJSON_GetObjectItem(root, "ledBrightness"), _settings->getLEDBrightness());
 
         if (adminPassword && strlen(adminPassword) > 0)
             _settings->setAdminPassword(adminPassword);
@@ -326,6 +397,19 @@ esp_err_t post_settings_json_handler_func(httpd_req_t *req)
         _settings->setGpsBaudrate(gpsBaudrate);
         _settings->setNtpServer(ntpServer);
         _settings->setLEDBrightness(ledBrightness);
+
+        // MQTT settings are optional, missing values keep the current configuration
+        cJSON *mqttPassword = cJSON_GetObjectItem(root, "mqttPassword");
+        _settings->setMqttSettings(
+            cJSON_GetBoolValue(cJSON_GetObjectItem(root, "mqttEnabled"), _settings->getMqttEnabled()),
+            cJSON_GetStringValue(cJSON_GetObjectItem(root, "mqttServer"), _settings->getMqttServer()),
+            cJSON_GetIntValue(cJSON_GetObjectItem(root, "mqttPort"), _settings->getMqttPort()),
+            cJSON_GetStringValue(cJSON_GetObjectItem(root, "mqttUser"), _settings->getMqttUser()),
+            // an empty or missing password keeps the stored one, null clears it
+            cJSON_IsNull(mqttPassword) ? "" : ((cJSON_IsString(mqttPassword) && strlen(mqttPassword->valuestring) > 0) ? mqttPassword->valuestring : NULL),
+            cJSON_GetStringValue(cJSON_GetObjectItem(root, "mqttTopicPrefix"), _settings->getMqttTopicPrefix()),
+            cJSON_GetIntValue(cJSON_GetObjectItem(root, "mqttInterval"), _settings->getMqttInterval()),
+            cJSON_GetBoolValue(cJSON_GetObjectItem(root, "mqttHaDiscovery"), _settings->getMqttHaDiscovery()));
 
         _settings->save();
 
@@ -433,8 +517,9 @@ httpd_uri_t post_ota_update_handler = {
     .handler = post_ota_update_handler_func,
     .user_ctx = NULL};
 
-WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, Ethernet *ethernet, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector, RadioModuleDetector *radioModuleDetector)
+WebUI::WebUI(Settings *settings, LED *statusLED, SysInfo *sysInfo, UpdateCheck *updateCheck, Ethernet *ethernet, RawUartUdpListener *rawUartUdpListener, RadioModuleConnector *radioModuleConnector, RadioModuleDetector *radioModuleDetector, DeviceStatus *deviceStatus)
 {
+    _deviceStatus = deviceStatus;
     _settings = settings;
     _statusLED = statusLED;
     _sysInfo = sysInfo;
@@ -468,15 +553,17 @@ void WebUI::start()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = true;
-    config.max_uri_handlers = 10;
+    config.max_uri_handlers = 16;
+    config.stack_size = 6144;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
-    httpd_handle_t _httpd_handle = NULL;
+    _httpd_handle = NULL;
 
     if (httpd_start(&_httpd_handle, &config) == ESP_OK)
     {
         httpd_register_uri_handler(_httpd_handle, &post_login_json_handler);
         httpd_register_uri_handler(_httpd_handle, &get_sysinfo_json_handler);
+        httpd_register_uri_handler(_httpd_handle, &get_api_status_handler);
         httpd_register_uri_handler(_httpd_handle, &get_settings_json_handler);
         httpd_register_uri_handler(_httpd_handle, &post_settings_json_handler);
         httpd_register_uri_handler(_httpd_handle, &post_ota_update_handler);

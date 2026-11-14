@@ -53,6 +53,15 @@ static const char *NVS_NAMESPACE = "HB-RF-ETH";
     var = (__##var##_temp != 0);                           \
   }
 
+#define GET_STR(handle, name, var, defaultValue)           \
+  {                                                        \
+    size_t __len = sizeof(var);                            \
+    if (nvs_get_str(handle, name, var, &__len) != ESP_OK)  \
+    {                                                      \
+      strncpy(var, defaultValue, sizeof(var) - 1);         \
+    }                                                      \
+  }
+
 #define SET_IP_ADDR(handle, name, var) ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_set_u32(handle, name, var.addr));
 #define SET_INT(handle, name, var) ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_set_i32(handle, name, var));
 #define SET_STR(handle, name, var) ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_set_str(handle, name, var));
@@ -107,6 +116,15 @@ void Settings::load()
 
   GET_INT(handle, "ledBrightness", _ledBrightness, 100);
 
+  GET_BOOL(handle, "mqttEnabled", _mqttEnabled, false);
+  GET_STR(handle, "mqttServer", _mqttServer, "");
+  GET_INT(handle, "mqttPort", _mqttPort, 1883);
+  GET_STR(handle, "mqttUser", _mqttUser, "");
+  GET_STR(handle, "mqttPassword", _mqttPassword, "");
+  GET_STR(handle, "mqttTopic", _mqttTopicPrefix, "");
+  GET_INT(handle, "mqttInterval", _mqttInterval, 60);
+  GET_BOOL(handle, "mqttHaDisc", _mqttHaDiscovery, true);
+
   nvs_close(handle);
 }
 
@@ -135,6 +153,17 @@ void Settings::save()
   SET_STR(handle, "ntpServer", _ntpServer);
 
   SET_INT(handle, "ledBrightness", _ledBrightness);
+
+  SET_BOOL(handle, "mqttEnabled", _mqttEnabled);
+  SET_STR(handle, "mqttServer", _mqttServer);
+  SET_INT(handle, "mqttPort", _mqttPort);
+  SET_STR(handle, "mqttUser", _mqttUser);
+  SET_STR(handle, "mqttPassword", _mqttPassword);
+  SET_STR(handle, "mqttTopic", _mqttTopicPrefix);
+  SET_INT(handle, "mqttInterval", _mqttInterval);
+  SET_BOOL(handle, "mqttHaDisc", _mqttHaDiscovery);
+
+  ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_commit(handle));
 
   nvs_close(handle);
 }
@@ -255,4 +284,67 @@ int Settings::getLEDBrightness()
 void Settings::setLEDBrightness(int ledBrightness)
 {
   _ledBrightness = ledBrightness;
+}
+
+bool Settings::getMqttEnabled()
+{
+  return _mqttEnabled;
+}
+
+char *Settings::getMqttServer()
+{
+  return _mqttServer;
+}
+
+int Settings::getMqttPort()
+{
+  return _mqttPort;
+}
+
+char *Settings::getMqttUser()
+{
+  return _mqttUser;
+}
+
+char *Settings::getMqttPassword()
+{
+  return _mqttPassword;
+}
+
+char *Settings::getMqttTopicPrefix()
+{
+  return _mqttTopicPrefix;
+}
+
+int Settings::getMqttInterval()
+{
+  return _mqttInterval;
+}
+
+bool Settings::getMqttHaDiscovery()
+{
+  return _mqttHaDiscovery;
+}
+
+static void copySetting(char *dest, const char *src, size_t size)
+{
+  if (dest == src)
+    return;
+  strncpy(dest, src ? src : "", size - 1);
+  dest[size - 1] = 0;
+}
+
+void Settings::setMqttSettings(bool enabled, const char *server, int port, const char *user, const char *password, const char *topicPrefix, int interval, bool haDiscovery)
+{
+  _mqttEnabled = enabled;
+  copySetting(_mqttServer, server, sizeof(_mqttServer));
+  _mqttPort = (port > 0 && port <= 65535) ? port : 1883;
+  copySetting(_mqttUser, user, sizeof(_mqttUser));
+  if (password != NULL)
+  {
+    copySetting(_mqttPassword, password, sizeof(_mqttPassword));
+  }
+  copySetting(_mqttTopicPrefix, topicPrefix, sizeof(_mqttTopicPrefix));
+  _mqttInterval = (interval >= 5 && interval <= 3600) ? interval : 60;
+  _mqttHaDiscovery = haDiscovery;
 }

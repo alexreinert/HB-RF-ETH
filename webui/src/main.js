@@ -126,6 +126,14 @@ const moduleSettings = {
     gpsBaudrate: 9600,
     ntpServer: "",
     ledBrightness: 100,
+    mqttEnabled: false,
+    mqttServer: "",
+    mqttPort: 1883,
+    mqttUser: "",
+    mqttPasswordSet: false,
+    mqttTopicPrefix: "",
+    mqttInterval: 60,
+    mqttHaDiscovery: true,
   }),
   mutations: {
     settings(state, value) {
@@ -141,6 +149,14 @@ const moduleSettings = {
       state.gpsBaudrate = value.gpsBaudrate;
       state.ntpServer = value.ntpServer;
       state.ledBrightness = value.ledBrightness;
+      state.mqttEnabled = value.mqttEnabled;
+      state.mqttServer = value.mqttServer;
+      state.mqttPort = value.mqttPort;
+      state.mqttUser = value.mqttUser;
+      state.mqttPasswordSet = value.mqttPasswordSet;
+      state.mqttTopicPrefix = value.mqttTopicPrefix;
+      state.mqttInterval = value.mqttInterval;
+      state.mqttHaDiscovery = value.mqttHaDiscovery;
     },
   },
   actions: {
